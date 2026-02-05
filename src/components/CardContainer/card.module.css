@@ -1,0 +1,15 @@
+.cardContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: red;
+  gap: 1rem;
+  padding: 10px;
+}
+
+.card {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  flex: 1;
+}
