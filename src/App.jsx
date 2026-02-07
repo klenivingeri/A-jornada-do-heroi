@@ -4,7 +4,7 @@ import Game from './Game.jsx'
 import { useState, useEffect } from 'react';
 import { Modal } from './components/Modal/index.jsx';
 import SpeechListener from './components/SpeechListener/SpeechListener.jsx';
-import { normalizedExecutor } from './util/normalizedExecutor.js';
+import { commandMatch } from './util/commandMatch.js';
 
 const statusGame = {
   enemy: 1,
@@ -22,6 +22,7 @@ const menuConfiguracoes = [
   {
     text: "Som Ambiente",
     description: "Música que toca no fundo",
+    textCommand: "som ambiente [valor]",
     command: ["som ambiente"],
     min: 0,
     max: 100,
@@ -31,19 +32,28 @@ const menuConfiguracoes = [
     text: "Som dos Efeitos",
     description: "Efeito dos sons de ouro, ataque e defesa",
     command: ["som efeito"],
+    textCommand: "som efeito [valor]",
     min: 0,
     max: 100,
     value: 50
   },
   {
     text: "Falas de Efeitos",
+    textCommand: "ativar falas, ou desativar falas",
     description:
       "Ativado: fala o nome das cartas. Desativado: apenas o efeito sonoro será reproduzido",
     command: ["ativar falas", "desativar falas"],
     active: true
   },
   {
-    text: "Fechar  Menu",
+    text: "Lista comandos",
+    notRead: true,
+    command: ["Listar comandos", "Lista de acoes"],
+  },
+  {
+    text: "Fechar Menu",
+    textCommand: "fechar menu",
+    isButton: true,
     command: ["fechar menu", "fechar configurações"],
   },
 ];
@@ -58,13 +68,15 @@ function App() {
 
   // UseEffect para reagir aos comandos de voz sem causar loop infinito
   useEffect(() => {
-    if (normalizedExecutor(command, ["abrir menu", "abrir configurações"])) {
-      setOpenModal(true)
-      setCommand("") // Limpa o comando após executar
-    }
-    if (normalizedExecutor(command, ["iniciar jogo"])) {
-      setStartGame(true)
-      setCommand("") // Limpa o comando após executar
+    if (!openModal) {
+      if (commandMatch(command, ["abrir menu", "abrir configurações"])) {
+        setOpenModal(true)
+        setCommand("") // Limpa o comando após executar
+      }
+      if (commandMatch(command, ["iniciar jogo", "iniciar game"])) {
+        setStartGame(true)
+        setCommand("") // Limpa o comando após executar
+      }
     }
   }, [command])
 
@@ -78,7 +90,7 @@ function App() {
         : <Game deck={deck} exe={command} />
       }
 
-      {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config}  setConfig={setConfig} />}
+      {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config} setConfig={setConfig} />}
       <SpeechListener setCommand={setCommand} />
 
     </div>
