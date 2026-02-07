@@ -1,6 +1,10 @@
 import './App.css'
 import createDeck from './util/deck-create.js'
 import Game from './Game.jsx'
+import { useState, useEffect } from 'react';
+import { Modal } from './components/Modal/index.jsx';
+import SpeechListener from './components/SpeechListener/SpeechListener.jsx';
+import { normalizedExecutor } from './util/normalizedExecutor.js';
 
 const statusGame = {
   enemy: 1,
@@ -11,11 +15,72 @@ const statusGame = {
   skill: 0
 }
 
+const menuConfiguracoes = [
+  {
+    text: "Configurações"
+  },
+  {
+    text: "Som Ambiente",
+    description: "Música que toca no fundo",
+    command: ["som ambiente"],
+    min: 0,
+    max: 100,
+    value: 50
+  },
+  {
+    text: "Som dos Efeitos",
+    description: "Efeito dos sons de ouro, ataque e defesa",
+    command: ["som efeito"],
+    min: 0,
+    max: 100,
+    value: 50
+  },
+  {
+    text: "Falas de Efeitos",
+    description:
+      "Ativado: fala o nome das cartas. Desativado: apenas o efeito sonoro será reproduzido",
+    command: ["ativar falas", "desativar falas"],
+    active: true
+  },
+  {
+    text: "Fechar  Menu",
+    command: ["fechar menu", "fechar configurações"],
+  },
+];
+
+
 function App() {
   const deck = createDeck(statusGame);
+  const [command, setCommand] = useState("")
+  const [config, setConfig] = useState(() => menuConfiguracoes)
+  const [openModal, setOpenModal] = useState(false)
+  const [startGame, setStartGame] = useState(false)
+
+  // UseEffect para reagir aos comandos de voz sem causar loop infinito
+  useEffect(() => {
+    if (normalizedExecutor(command, ["abrir menu", "abrir configurações"])) {
+      setOpenModal(true)
+      setCommand("") // Limpa o comando após executar
+    }
+    if (normalizedExecutor(command, ["iniciar jogo"])) {
+      setStartGame(true)
+      setCommand("") // Limpa o comando após executar
+    }
+  }, [command])
+
   return (
     <div className="app">
-      <Game deck={deck} />
+      {!startGame
+        ? <div>
+          <p>Bem vindo ao jogo! Use comandos de voz para interagir. Diga "abrir menu" para acessar as configurações.</p>
+          <p>Ou Iniciar jogo dizendo "iniciar jogo". Diga "fechar menu" para fechar as configurações.</p>
+        </div>
+        : <Game deck={deck} exe={command} />
+      }
+
+      {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config}  setConfig={setConfig} />}
+      <SpeechListener setCommand={setCommand} />
+
     </div>
   )
 }

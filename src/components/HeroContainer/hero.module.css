@@ -1,0 +1,8 @@
+.heroContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: green;
+  gap: 1rem;
+  padding: 10px;
+}
