@@ -35,46 +35,25 @@ export default function SpeechListener({ setCommand }) {
     }
   };
 
-  // Listener global para mouse e teclado (push-to-talk)
+  // Listener global para barra de espaço
   useEffect(() => {
-    const handlePressStart = (e) => {
-      // Se for tecla, só aceita barra de espaço
-      if (e.type === 'keydown' && e.code !== 'Space') return;
-      
-      // Previne scroll com espaço
-      if (e.code === 'Space') {
-        e.preventDefault();
-      }
-      
+    const handleKeyDown = (e) => {
+      if (e.code !== 'Space') return;
+      e.preventDefault();
       startListening();
     };
 
-    const handlePressEnd = (e) => {
-      // Se for tecla, só aceita barra de espaço
-      if (e.type === 'keyup' && e.code !== 'Space') return;
-      
+    const handleKeyUp = (e) => {
+      if (e.code !== 'Space') return;
       stopListening();
     };
-
-    // Mouse events
-    document.addEventListener('mousedown', handlePressStart);
-    document.addEventListener('mouseup', handlePressEnd);
     
-    // Touch events (mobile)
-    document.addEventListener('touchstart', handlePressStart);
-    document.addEventListener('touchend', handlePressEnd);
-    
-    // Keyboard events (barra de espaço)
-    document.addEventListener('keydown', handlePressStart);
-    document.addEventListener('keyup', handlePressEnd);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      document.removeEventListener('mousedown', handlePressStart);
-      document.removeEventListener('mouseup', handlePressEnd);
-      document.removeEventListener('touchstart', handlePressStart);
-      document.removeEventListener('touchend', handlePressEnd);
-      document.removeEventListener('keydown', handlePressStart);
-      document.removeEventListener('keyup', handlePressEnd);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
@@ -172,12 +151,30 @@ export default function SpeechListener({ setCommand }) {
     };
   }, [setCommand]);
 
+  const handleTouchStart = (e) => {
+    console.log("Touch start detectado");
+    startListening();
+  };
+
+  const handleTouchEnd = (e) => {
+    console.log("Touch end detectado");
+    stopListening();
+  };
+
   return (
     <div
+      onMouseDown={startListening}
+      onMouseUp={stopListening}
+      onMouseLeave={stopListening}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
       style={{
         position: "fixed",
         bottom: "20px",
-        right: "20px",
+        left: 0,
+        right: 0,
+        width: "100%",
         background: isListening ? "#4CAF50" : "#333",
         color: "white",
         padding: "20px 28px",
@@ -188,10 +185,13 @@ export default function SpeechListener({ setCommand }) {
         fontFamily: "monospace",
         fontSize: "18px",
         zIndex: 9999,
-        minWidth: "280px",
         transition: "all 0.2s ease",
         userSelect: "none",
+        WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
         border: isListening ? "3px solid #66BB6A" : "3px solid #555",
+        cursor: "pointer",
+        touchAction: "manipulation",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "12px" }}>

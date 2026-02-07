@@ -73,9 +73,9 @@ const getShieldCards = (shield = 0) => [
     value: generateRange(2 + shield, 9 + shield),
     type: "defense",
     actions: {
-      bag: ["retirar", "descartar"], //retirar é tirar da bag e adicinar no slot, descartar é destruir e pegar seu valor em ouro
+      bag: ["pegar", "descartar"], //retirar é tirar da bag e adicinar no slot, descartar é destruir e pegar seu valor em ouro
       hand: ["Defesa"], // é absorver o dano do inimigo com base no value, se o dano for maior que o value, o restante do dano passa para a vida do herói,e e a defesa é destruida, caso contradio só diminui a quantidade de defesa com base no dado do inimigo
-      board: ["pegar", "guardar", "descartar"], // pegar, é adiconar a carta no slot se estiver algum disponivel, guardar é adicionar a bag, se estiver disponivel, e discartar é destruir a carta e pegar seu valor em ouro
+      board: ["comprar", "guardar", "descartar"], // pegar, é adiconar a carta no slot se estiver algum disponivel, guardar é adicionar a bag, se estiver disponivel, e discartar é destruir a carta e pegar seu valor em ouro
     },
     uri: "https://img.elo7.com.br/product/zoom/4DD8D58/escudo-medieval-em-mdf-40-cm-aniversario-de-principe.jpg",
     description: "Defesa absorve dano",
@@ -89,9 +89,9 @@ const getAttackCards = (attack = 0) => [
     value: generateRange(2 + attack, 9 + attack),
     type: "attack",
     actions: {
-      bag: ["retirar", "descartar"],
+      bag: ["pegar", "descartar"],
       hand: ["ataque"], // o ataque diminui o value do inimigo baseado no value da carta value, após a carta ser utilizada ela é destruida e libera o slot.
-      board: ["pegar", "guardar", "descartar"],
+      board: ["comprar", "guardar", "descartar"],
     },
     uri: "https://aventurasnahistoria.com.br/wp-content/uploads/espada_achado_bosnia.jpeg",
     description: "Ataque remove dano do inimigo",
@@ -105,8 +105,8 @@ const getPotionCards = (potion = 0) => [
     value: generateRange(3 + potion, 9 + potion),
     type: "potion",
     actions: {
-      bag: ["retirar", "descartar"],
-      board: ["pegar", "descartar", "guardar"],
+      bag: ["pegar", "descartar"],
+      board: ["comprar", "descartar", "guardar"],
     },
     auto: {
       // o item deve ser consumido automaticamente ao ser adicinada no slot, ele fica oculpado no slot até o final do turno
@@ -126,7 +126,7 @@ const getGoldCards = (gold = 0) => [
     value: generateRange(2 + gold, 11 + gold),
     type: "gold",
     actions: {
-      board: ["pegar", "descartar", "guardar"],
+      board: ["comprar", "descartar", "guardar"],
     },
     auto: {
       // o item deve ser consumido automaticamente ao ser adicinada no slot ou bag, ele fica oculpado no slot até o final do turno
@@ -150,12 +150,11 @@ const getSkillCards = (skill = 0) => {
       value: [2],
       type: "skill",
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em um ataque deve reduzir 1 do sequencial
-      actions: ["pegar", "usar", "descartar", "colocar"],
       description: "Dobra a carta de ataque atual do herói.",
       actions: {
-        bag: ["retirar", "descartar"],
+        bag: ["pegar", "descartar"],
         hand: ["usar"],// multiplica o valor de ataque com base no value da carta, após a carta ser utilizada ela é destruida e libera o slot.
-        board: ["pegar", "guardar", "descartar"],
+        board: ["comprar", "guardar", "descartar"],
       },
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
       effect: "attack", // o efeito é aplicado apenas em cartas type:ataque
@@ -167,9 +166,9 @@ const getSkillCards = (skill = 0) => {
       type: "skill",
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em uma defesa deve reduzir 1 do sequencial
       actions: {
-        bag: ["retirar", "descartar"],
+        bag: ["pegar", "descartar"],
         hand: ["usar"],
-        board: ["pegar", "guardar", "descartar"],
+        board: ["comprar", "guardar", "descartar"],
       },
       description: "Dobra a carta de defesa atual do herói.",
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
@@ -182,9 +181,9 @@ const getSkillCards = (skill = 0) => {
       type: "skill",
        sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se heroi morrer deve reduzir 1 do sequencial
       actions: {
-        bag: ["retirar", "descartar"],
+        bag: ["pegar", "descartar"],
         hand: ["usar"],
-        board: ["pegar", "guardar", "descartar"],
+        board: ["comprar", "guardar", "descartar"],
       },
       description: `Quando o herói for morto ele é revivido com ${reviveValue} de vida.`,
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada nesse turno

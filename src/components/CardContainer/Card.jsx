@@ -1,19 +1,17 @@
 import { readSimpleCommand } from '../../util/speechReader';
 import styles from './card.module.css';
 
-export const Card = ({ id, title = '', value = 0, uri = '', bg = '', setSelectCardID }) => {
+export const Card = ({ id, title = '', value = 0, uri = '', bg = '', selectID }) => {
   const normalizedTitle = title?.trim();
   const cardLabel = normalizedTitle ? `Carta: ${normalizedTitle}` : 'Carta vazia';
-  const imageLabel = normalizedTitle
-    ? `Imagem da carta ${normalizedTitle}`
-    : 'Imagem da carta';
 
   const handlerCardClick = (text, id) => {
     readSimpleCommand(text)
-    setSelectCardID(id)
+    selectID(id)
   }
   return (
     <div
+      aria-hidden="true"
       className={styles.cardContainer}
       role="group"
       aria-label={cardLabel}
@@ -31,6 +29,7 @@ export const Card = ({ id, title = '', value = 0, uri = '', bg = '', setSelectCa
       {title && (
         <div 
           className={styles.border}
+          aria-hidden="true"
           onClick={() => handlerCardClick(`${title} ${!value ? "" : value}`,id)}
         >
           {!!value && (
@@ -53,7 +52,7 @@ export const Card = ({ id, title = '', value = 0, uri = '', bg = '', setSelectCa
           <div
             className={styles.card}
             role="img"
-            aria-label={imageLabel}
+            aria-hidden="true"
             style={{
               backgroundImage: `url('${uri}')`,
               backgroundSize: 'cover',

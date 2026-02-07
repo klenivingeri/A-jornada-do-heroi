@@ -37,8 +37,8 @@ function Game({ deck, command, setCommand, openModal }) {
   const [deckState, setDeckState] = useState(() => deck);
   const [dungeonCards, setDungeonCards] = useState(() => [initItem])
   const [dungeonHero, setDungeonHero] = useState(() => initHero)
-  const [selectCardID, setSelectCardID] = useState(() => ({}))
-  const [selectHero, setSelectHero] = useState(() => ({}))
+  const [selectCardID, setSelectCardID] = useState(() => (''))
+  const [selectHeroID, setSelectHeroID] = useState(() => (''))
 
 
   useEffect(() => {
@@ -56,9 +56,9 @@ function Game({ deck, command, setCommand, openModal }) {
     if (!openModal) {
       const [actiont, ...text] = command.split(" ")
       const restComand = text.join(" ")
-
-      if (commandMatch(actiont, ["pegar", "guardar", "descartar"])) {
-        let heroChanged = false
+      let heroChanged = false
+      if (commandMatch(actiont, ["compra", "guarda", "descarta"])) {
+        
         const nextHero = {
           ...dungeonHero,
           bag: [...dungeonHero.bag],
@@ -74,21 +74,20 @@ function Game({ deck, command, setCommand, openModal }) {
             ? card.id === selectCardID 
             : commandMatch(restComand, [infoCard])
           
-
           if (shouldProcessCard) {
-            if (actiont === "guardar" && nextHero.bag.length < 1) {
+            if (commandMatch(actiont, ["guarda"]) && nextHero.bag.length < 1) {
               nextHero.bag.push(card)
               heroChanged = true
               setSelectCardID(null)
               return {}
             }
-            if (actiont === "descartar") {
+            if (commandMatch(actiont, ["descarta"])) {
               nextHero.gold = nextHero.gold + card.value
               heroChanged = true
               setSelectCardID(null)
               return {}
             }
-            if (actiont === "pegar" && nextHero.slot.length < 2) {
+            if (commandMatch(actiont, ["pega", "compra"]) && nextHero.slot.length < 2) {
               nextHero.slot.push(card)
               heroChanged = true
               setSelectCardID(null)
@@ -104,6 +103,46 @@ function Game({ deck, command, setCommand, openModal }) {
 
         setDungeonCards(restDungeonCards)
       }
+      
+      if (commandMatch(actiont, ["pega","descarta"])) {
+        let heroChanged = false
+        const nextHero = {
+          ...dungeonHero,
+          bag: [...dungeonHero.bag],
+          slot: [...dungeonHero.slot],
+          skill: [...dungeonHero.skill]
+        }
+        
+        // Processa cards da bag do herói
+        nextHero.bag = nextHero.bag.filter((card) => {
+          const infoCard = `${normalizeText(card.title)} ${card.value}`
+          
+          // Verifica se deve usar o ID do card selecionado ou o comando de texto
+          const shouldProcessCard = selectHeroID 
+            ? card.id === selectHeroID 
+            : commandMatch(restComand, [infoCard])
+          
+          if (shouldProcessCard) {
+            if (commandMatch(actiont, ["descarta"])) {
+              nextHero.gold = nextHero.gold + card.value
+              heroChanged = true
+              setSelectHeroID(null)
+              return false // Remove da bag
+            }
+            if (commandMatch(actiont, ["pega"]) && nextHero.slot.length < 2) {
+              nextHero.slot.push(card)
+              heroChanged = true
+              setSelectHeroID(null)
+              return false // Remove da bag
+            }
+          }
+          return true // Mantém na bag
+        })
+
+        if (heroChanged) {
+          setDungeonHero(nextHero)
+        }
+      }
 
       setCommand("") // Limpa o comando após executar
     }
@@ -112,23 +151,32 @@ function Game({ deck, command, setCommand, openModal }) {
   const handlerCardClick = (text) => {
     readSimpleCommand(text)
   }
+
   return (
     <>
-      <div style={{
+      <div aria-hidden="true" style={{
         display: 'flex',
         justifyContent: 'space-between'
       }}>
         <div
+          aria-hidden="true"
           style={{ color: 'white', padding:'20px', width: '100%' }}
           onClick={() => handlerCardClick(`restam ${deckState.length} no deck`)}
         >{deckState.length}</div>
         <div
+          aria-hidden="true"
           style={{ color: 'white', padding:'20px', width: '100%', display:'flex', justifyContent:'flex-end'  }}
           onClick={() => handlerCardClick(`${dungeonHero.gold} de gold`)}
         >R${dungeonHero.gold}</div>
       </div>
-      <Board dungeonCards={dungeonCards} setSelectCardID={setSelectCardID} />
-      <HeroContainer dungeonHero={dungeonHero} />
+      <Board 
+        dungeonCards={dungeonCards}
+        setSelectCardID={setSelectCardID}
+      />
+      <HeroContainer
+        dungeonHero={dungeonHero}
+        setSelectHeroID={setSelectHeroID}
+      />
     </>
 
   )
