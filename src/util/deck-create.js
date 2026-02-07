@@ -151,7 +151,8 @@ const getSkillCards = (skill = 0) => {
         board: ["pegar", "guardar", "descartar"],
       },
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
-      effect: "attack" // o efeito é aplicado apenas em cartas type:ataque
+      effect: "attack", // o efeito é aplicado apenas em cartas type:ataque
+      uri: "https://www.caminhosdaevolucao.org/wp-content/uploads/2018/10/magia1-945x628.jpg",
     },
     {
       title: "Dobra Defesa",
@@ -165,7 +166,8 @@ const getSkillCards = (skill = 0) => {
       },
       description: "Dobra a carta de defesa atual do herói.",
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
-      effect: "defense" // o efeito é aplicado apenas em cartas type:defense
+      effect: "defense", // o efeito é aplicado apenas em cartas type:defense
+      uri: "https://www.caminhosdaevolucao.org/wp-content/uploads/2018/10/magia1-945x628.jpg",
     },
     {
       title: "Reviver",
@@ -179,6 +181,7 @@ const getSkillCards = (skill = 0) => {
       },
       description: `Quando o herói for morto ele é revivido com ${reviveValue} de vida.`,
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada nesse turno
+      uri: "https://www.caminhosdaevolucao.org/wp-content/uploads/2018/10/magia1-945x628.jpg",
     },
   ];
 };

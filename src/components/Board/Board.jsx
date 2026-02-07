@@ -5,8 +5,8 @@ export const Board = ({ dungeonCards }) => {
 
   return (
     <div className={styles.board}>
-      {dungeonCards.map((card) => (
-        <Card key={card.id} title={card.title} value={card.value} uri={card.uri} />
+      {dungeonCards.map((card, i) => (
+        <Card key={i} title={card?.title} value={card?.value} uri={card?.uri} />
       ))}
     </div>
   )

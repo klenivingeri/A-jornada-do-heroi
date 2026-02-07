@@ -87,7 +87,7 @@ function App() {
           <p>Bem vindo ao jogo! Use comandos de voz para interagir. Diga "abrir menu" para acessar as configurações.</p>
           <p>Ou Iniciar jogo dizendo "iniciar jogo". Diga "fechar menu" para fechar as configurações.</p>
         </div>
-        : <Game deck={deck} command={command} />
+        : <Game deck={deck} command={command} setCommand={setCommand} openModal={openModal} setOpenModal={setOpenModal} startGame={startGame} setStartGame={setStartGame} />
       }
 
       {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config} setConfig={setConfig} />}
