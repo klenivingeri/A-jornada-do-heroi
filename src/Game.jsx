@@ -4,6 +4,7 @@ import { HeroContainer } from './components/HeroContainer/HeroContainer';
 import { Board } from './components/Board/Board';
 import { commandMatch } from './util/commandMatch';
 import { normalizeText } from './util/normalizeText';
+import { readSimpleCommand } from './util/speechReader';
 
 const initItem =
 {
@@ -36,17 +37,20 @@ function Game({ deck, command, setCommand, openModal }) {
   const [deckState, setDeckState] = useState(() => deck);
   const [dungeonCards, setDungeonCards] = useState(() => [initItem])
   const [dungeonHero, setDungeonHero] = useState(() => initHero)
+  const [selectCardID, setSelectCardID] = useState(() => ({}))
+  const [selectHero, setSelectHero] = useState(() => ({}))
 
-    useEffect(() => {
-      const activeCards = dungeonCards.filter((card) => card.title)
-      const countCard = activeCards.length
 
-      if (countCard <= 1 && deckState.length > 0) {
-        const newCards = deckState.slice(0, 3)
-        setDungeonCards([...newCards, ...activeCards])
-        setDeckState(deckState.slice(3))
-      }
-    }, [dungeonCards, deckState]);
+  useEffect(() => {
+    const activeCards = dungeonCards.filter((card) => card.title)
+    const countCard = activeCards.length
+
+    if (countCard <= 1 && deckState.length > 0) {
+      const newCards = deckState.slice(0, 3)
+      setDungeonCards([...newCards, ...activeCards])
+      setDeckState(deckState.slice(3))
+    }
+  }, [dungeonCards, deckState]);
 
   useEffect(() => {
     if (!openModal) {
@@ -64,21 +68,30 @@ function Game({ deck, command, setCommand, openModal }) {
 
         const restDungeonCards = dungeonCards.map((card) => {
           const infoCard = `${normalizeText(card.title)} ${card.value}`
+          
+          // Verifica se deve usar o ID do card selecionado ou o comando de texto
+          const shouldProcessCard = selectCardID 
+            ? card.id === selectCardID 
+            : commandMatch(restComand, [infoCard])
+          
 
-          if (commandMatch(restComand, [infoCard])) {
+          if (shouldProcessCard) {
             if (actiont === "guardar" && nextHero.bag.length < 1) {
               nextHero.bag.push(card)
               heroChanged = true
+              setSelectCardID(null)
               return {}
             }
             if (actiont === "descartar") {
               nextHero.gold = nextHero.gold + card.value
               heroChanged = true
+              setSelectCardID(null)
               return {}
             }
             if (actiont === "pegar" && nextHero.slot.length < 2) {
               nextHero.slot.push(card)
               heroChanged = true
+              setSelectCardID(null)
               return {}
             }
           }
@@ -94,13 +107,27 @@ function Game({ deck, command, setCommand, openModal }) {
 
       setCommand("") // Limpa o comando após executar
     }
-  }, [command, openModal, dungeonCards, dungeonHero, setCommand])
+  }, [command, openModal, dungeonCards, dungeonHero, selectCardID, setCommand])
 
-  console.log({ dungeonHero })
+  const handlerCardClick = (text) => {
+    readSimpleCommand(text)
+  }
   return (
     <>
-      <div style={{ color: 'white' }}>{deckState.length}</div>
-      <Board dungeonCards={dungeonCards} />
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between'
+      }}>
+        <div
+          style={{ color: 'white', padding:'20px', width: '100%' }}
+          onClick={() => handlerCardClick(`restam ${deckState.length} no deck`)}
+        >{deckState.length}</div>
+        <div
+          style={{ color: 'white', padding:'20px', width: '100%', display:'flex', justifyContent:'flex-end'  }}
+          onClick={() => handlerCardClick(`${dungeonHero.gold} de gold`)}
+        >R${dungeonHero.gold}</div>
+      </div>
+      <Board dungeonCards={dungeonCards} setSelectCardID={setSelectCardID} />
       <HeroContainer dungeonHero={dungeonHero} />
     </>
 

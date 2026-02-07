@@ -40,6 +40,29 @@ export const readCommandsList = (config) => {
 };
 
 /**
+ * Função para ler um comando simples (uma única frase)
+ * @param {string} command - Comando a ser lido
+ * @returns {boolean} - true se leu com sucesso, false caso contrário
+ */
+export const readSimpleCommand = (command) => {
+  if (!command || !('speechSynthesis' in window)) return false;
+
+  // Cancelar qualquer leitura em andamento
+  window.speechSynthesis.cancel();
+
+  // Criar e executar síntese de voz
+  const utterance = new SpeechSynthesisUtterance(command);
+  utterance.lang = 'pt-BR';
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  window.speechSynthesis.speak(utterance);
+  
+  return true;
+};
+
+/**
  * Função para parar a leitura em andamento
  */
 export const stopReading = () => {

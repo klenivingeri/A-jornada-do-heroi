@@ -2,8 +2,9 @@
   position: relative;
   display: flex;
   justify-content: space-around;
+  flex-direction: column;
   width: 100%;
-  padding: 26px;
+  padding: 26px 0;
 }
 
 .heroCard {
@@ -14,18 +15,13 @@
 
 .left {
   padding-top: 26px;
-  display: flex;
   max-width: 200px;
-  justify-content: space-around;
-  transform: rotate(-20deg);
 }
 
 .right {
   padding-top: 26px;
-  display: flex;
   max-width: 200px;
-  justify-content: space-around;
-  transform: rotate(20deg);
+
 }
 
 .hero {

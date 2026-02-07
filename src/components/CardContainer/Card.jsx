@@ -1,12 +1,17 @@
+import { readSimpleCommand } from '../../util/speechReader';
 import styles from './card.module.css';
 
-export const Card = ({ title = '', value = 0, uri = '', bg = '' }) => {
+export const Card = ({ id, title = '', value = 0, uri = '', bg = '', setSelectCardID }) => {
   const normalizedTitle = title?.trim();
   const cardLabel = normalizedTitle ? `Carta: ${normalizedTitle}` : 'Carta vazia';
   const imageLabel = normalizedTitle
     ? `Imagem da carta ${normalizedTitle}`
     : 'Imagem da carta';
 
+  const handlerCardClick = (text, id) => {
+    readSimpleCommand(text)
+    setSelectCardID(id)
+  }
   return (
     <div
       className={styles.cardContainer}
@@ -24,7 +29,10 @@ export const Card = ({ title = '', value = 0, uri = '', bg = '' }) => {
       }}
     >
       {title && (
-        <div className={styles.border}>
+        <div 
+          className={styles.border}
+          onClick={() => handlerCardClick(`${title} ${!value ? "" : value}`,id)}
+        >
           {!!value && (
             <p className={styles.value} aria-label={`Valor ${value}`}>
               {value}

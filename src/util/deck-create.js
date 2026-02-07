@@ -25,7 +25,7 @@ const generateId = () => {
 const getEnemyCards = (enemy = 0) => [
   {
     title: "Dragão",
-    value: generateRange(7 + enemy, 11 + enemy),
+    value: generateRange(7 + enemy, 13 + enemy),
     type: "enemy",
     uri: "https://wallpapers.com/images/featured/imagens-do-dragao-3d-7fnp82l6eor2rsxo.jpg",
     description: "Dragão inimigo",
@@ -46,16 +46,23 @@ const getEnemyCards = (enemy = 0) => [
   },
   {
     title: "Vampiro",
-    value: generateRange(2 + enemy, 5 + enemy),
+    value: generateRange(2 + enemy, 7 + enemy),
     type: "enemy",
     description: "Vampiro inimigo",
     uri: "https://files.meiobit.com/wp-content/uploads/2020/04/20200424dracula-de-bram-stoker-2.jpg",
   },
   {
     title: "Rato",
-    value: generateRange(2 + enemy, 5 + enemy),
+    value: generateRange(2 + enemy, 7 + enemy),
     type: "enemy",
     description: "Rato inimigo",
+    uri: "https://r2.starryai.com/results/1051467097/5bfb197a-c221-4519-b718-3a6e61892e8b.webp",
+  },
+    {
+    title: "Fantasma",
+    value: generateRange(4 + enemy, 10 + enemy),
+    type: "enemy",
+    description: "Fantasma inimigo",
     uri: "https://r2.starryai.com/results/1051467097/5bfb197a-c221-4519-b718-3a6e61892e8b.webp",
   },
 ];
@@ -63,7 +70,7 @@ const getEnemyCards = (enemy = 0) => [
 const getShieldCards = (shield = 0) => [
   {
     title: "Defesa",
-    value: generateRange(2 + shield, 8 + shield),
+    value: generateRange(2 + shield, 9 + shield),
     type: "defense",
     actions: {
       bag: ["retirar", "descartar"], //retirar é tirar da bag e adicinar no slot, descartar é destruir e pegar seu valor em ouro
@@ -79,7 +86,7 @@ const getShieldCards = (shield = 0) => [
 const getAttackCards = (attack = 0) => [
   {
     title: "Ataque",
-    value: generateRange(2 + attack, 8 + attack),
+    value: generateRange(2 + attack, 9 + attack),
     type: "attack",
     actions: {
       bag: ["retirar", "descartar"],
@@ -116,7 +123,7 @@ const getPotionCards = (potion = 0) => [
 const getGoldCards = (gold = 0) => [
   {
     title: "Ouro",
-    value: generateRange(3 + gold, 11 + gold),
+    value: generateRange(2 + gold, 11 + gold),
     type: "gold",
     actions: {
       board: ["pegar", "descartar", "guardar"],
