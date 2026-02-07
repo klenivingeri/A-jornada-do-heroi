@@ -1,10 +1,40 @@
 import styles from './card.module.css';
 
-export const Card = ({ title, value }) => {
+export const Card = ({ title = '', value = 0, uri = '', bg = '' }) => {
   return (
-    <div className={styles.card}>
-      <h2>{title}</h2>
-      <p>{value}</p>
+    <div className={styles.cardContainer}
+    style={{
+          backgroundImage: `url('${bg}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundOrigin: 'content-box',
+          backgroundClip: 'content-box',
+          border: !title ? '1px solid white' : '',
+          padding: !title ? '2px' : '',
+        }}>
+          {title && <div className={styles.border}>
+        {!!value && <p className={styles.value} >{value}</p>}
+        <div className={styles.bg} style={{
+          backgroundImage: `url('${bg ? bg : uri}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: bg ? 0.5 : 1,
+          filter: bg ? '' : 'blur(1px) brightness(1)',
+        }}>
+        </div>
+        <div className={styles.card} style={{
+          backgroundImage: `url('${uri}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}>
+          <h2 className={styles.title}>{title.toUpperCase()}</h2>
+        </div>
+      </div>
+      }
+      
     </div>
   )
 }

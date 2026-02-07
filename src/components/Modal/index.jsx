@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { commandMatch } from '../../util/commandMatch';
 import { readCommandsList } from '../../util/speechReader';
 import './modal.css';
+import { extractCommandNumber } from '../../util/extractCommandNumber';
 
 export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
   const modalRef = useRef(null);
@@ -14,14 +15,6 @@ export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
       modalRef.current.focus();
     }
   }, []);
-
-  // Função para extrair número do comando
-  const extractCommandNumber = (text) => {
-    const match = text.match(/(\d+)/);
-    const number = match ? parseInt(match[1]) : null;
-    const commandText = text.replace(/\d+/g, '').trim();
-    return [commandText, number];
-  };
 
   useEffect(() => {
     if (!command) return;
@@ -150,7 +143,7 @@ export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
                   >
                     {item.text}
                   </button>
-                ) : (
+                ) : item.active !== undefined && (
                   <div className="modal-toggle">
                     <label>
                       <input

@@ -64,7 +64,7 @@ function App() {
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [startGame, setStartGame] = useState(false)
+  const [startGame, setStartGame] = useState(true)
 
   // UseEffect para reagir aos comandos de voz sem causar loop infinito
   useEffect(() => {
@@ -87,7 +87,7 @@ function App() {
           <p>Bem vindo ao jogo! Use comandos de voz para interagir. Diga "abrir menu" para acessar as configurações.</p>
           <p>Ou Iniciar jogo dizendo "iniciar jogo". Diga "fechar menu" para fechar as configurações.</p>
         </div>
-        : <Game deck={deck} exe={command} />
+        : <Game deck={deck} command={command} />
       }
 
       {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config} setConfig={setConfig} />}

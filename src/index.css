@@ -79,6 +79,7 @@ summary {
   margin: 0;
   padding: 0;
   border: 0;
+  box-sizing: border-box;
   font-size: 100%;
   font: inherit;
   vertical-align: baseline;
@@ -86,6 +87,15 @@ summary {
 
 body {
   line-height: 1;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+html {
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 ol,
