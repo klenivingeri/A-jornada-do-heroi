@@ -23,7 +23,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         selectID={setSelectHeroID}
         id={dungeonHero.hero?.id}
         title={dungeonHero.hero?.title}
-        value={dungeonHero.hero?.value}
+        value={`${dungeonHero.hero?.value}/${dungeonHero.hero.maxValue}`}
         uri={dungeonHero.hero?.uri}
         description={dungeonHero.hero?.description}
       />

@@ -170,7 +170,6 @@ export default function SpeechListener({ setCommand }) {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
       style={{
-        position: "fixed",
         bottom: "20px",
         left: 0,
         right: 0,

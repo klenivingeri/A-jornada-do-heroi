@@ -21,6 +21,7 @@ const initHero = {
   hero: {
     title: 'Herói',
     value: 13,
+    maxValue: 13,
     actions: ['avancar'],
     type: 'heroi',
     description: 'This is the second dungeon card.',
@@ -58,7 +59,7 @@ function Game({ deck, command, setCommand, openModal }) {
       const restComand = text.join(" ")
       let heroChanged = false
       if (commandMatch(actiont, ["compra", "guarda", "descarta"])) {
-        
+
         const nextHero = {
           ...dungeonHero,
           bag: [...dungeonHero.bag],
@@ -68,12 +69,12 @@ function Game({ deck, command, setCommand, openModal }) {
 
         const restDungeonCards = dungeonCards.map((card) => {
           const infoCard = `${normalizeText(card.title)} ${card.value}`
-          
+
           // Verifica se deve usar o ID do card selecionado ou o comando de texto
-          const shouldProcessCard = selectCardID 
-            ? card.id === selectCardID 
+          const shouldProcessCard = selectCardID
+            ? card.id === selectCardID
             : commandMatch(restComand, [infoCard])
-          
+
           if (shouldProcessCard) {
             if (commandMatch(actiont, ["guarda"]) && nextHero.bag.length < 1) {
               nextHero.bag.push(card)
@@ -103,8 +104,8 @@ function Game({ deck, command, setCommand, openModal }) {
 
         setDungeonCards(restDungeonCards)
       }
-      
-      if (commandMatch(actiont, ["pega","descarta"])) {
+
+      if (commandMatch(actiont, ["pega", "descarta"])) {
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -112,16 +113,16 @@ function Game({ deck, command, setCommand, openModal }) {
           slot: [...dungeonHero.slot],
           skill: [...dungeonHero.skill]
         }
-        
+
         // Processa cards da bag do herói
         nextHero.bag = nextHero.bag.filter((card) => {
           const infoCard = `${normalizeText(card.title)} ${card.value}`
-          
+
           // Verifica se deve usar o ID do card selecionado ou o comando de texto
-          const shouldProcessCard = selectHeroID 
-            ? card.id === selectHeroID 
+          const shouldProcessCard = selectHeroID
+            ? card.id === selectHeroID
             : commandMatch(restComand, [infoCard])
-          
+
           if (shouldProcessCard) {
             if (commandMatch(actiont, ["descarta"])) {
               nextHero.gold = nextHero.gold + card.value
@@ -144,6 +145,39 @@ function Game({ deck, command, setCommand, openModal }) {
         }
       }
 
+      if (commandMatch(actiont, ["usa"])) {
+        let heroChanged = false
+        const nextHero = {
+          ...dungeonHero,
+          bag: [...dungeonHero.bag],
+          slot: [...dungeonHero.slot],
+          skill: [...dungeonHero.skill]
+        }
+
+        // Processa cards do slot do herói
+        nextHero.slot = nextHero.slot.filter((card) => {
+          const infoCard = `${normalizeText(card.title)} ${card.value}`
+
+          // Verifica se deve usar o ID do card selecionado ou o comando de texto
+          const shouldProcessCard = selectHeroID
+            ? card.id === selectHeroID
+            : commandMatch(restComand, [infoCard])
+
+          if (shouldProcessCard) {
+            nextHero.skill.push(card)
+            heroChanged = true
+            setSelectHeroID(null)
+            return false // Remove do slot
+          }
+          return true // Mantém no slot
+        })
+
+        if (heroChanged) {
+          setDungeonHero(nextHero)
+        }
+      }
+      
+
       setCommand("") // Limpa o comando após executar
     }
   }, [command, openModal, dungeonCards, dungeonHero, selectCardID, setCommand])
@@ -156,29 +190,42 @@ function Game({ deck, command, setCommand, openModal }) {
     <>
       <div aria-hidden="true" style={{
         display: 'flex',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        flexDirection: 'column',
       }}>
-        <div
-          aria-hidden="true"
-          style={{ color: 'white', padding:'20px', width: '100%' }}
-          onClick={() => handlerCardClick(`restam ${deckState.length} no deck`)}
-        >{deckState.length}</div>
-        <div
-          aria-hidden="true"
-          style={{ color: 'white', padding:'20px', width: '100%', display:'flex', justifyContent:'flex-end'  }}
-          onClick={() => handlerCardClick(`${dungeonHero.gold} de gold`)}
-        >R${dungeonHero.gold}</div>
-      </div>
-      <Board 
-        dungeonCards={dungeonCards}
-        setSelectCardID={setSelectCardID}
-      />
-      <HeroContainer
-        dungeonHero={dungeonHero}
-        setSelectHeroID={setSelectHeroID}
-      />
-    </>
+        <div style={{
+          display: 'flex',
+          width: '100%',
+          flexDirection: 'column',
+        }}>
+          <div style={{
+            display: 'flex',
+            width: '100%',
+          }}>
+            <div
+              aria-hidden="true"
+              style={{ color: 'white', padding: '20px', width: '100%' }}
+              onClick={() => handlerCardClick(`restam ${deckState.length} no deck`)}
+            >{deckState.length}</div>
+            <div
+              aria-hidden="true"
+              style={{ color: 'white', padding: '20px', width: '100%', display: 'flex', justifyContent: 'flex-end' }}
+              onClick={() => handlerCardClick(`${dungeonHero.gold} de gold`)}
+            >R${dungeonHero.gold}
+            </div>
+          </div>
+          <Board
+            dungeonCards={dungeonCards}
+            setSelectCardID={setSelectCardID}
+          />
+        </div>
 
+        <HeroContainer
+          dungeonHero={dungeonHero}
+          setSelectHeroID={setSelectHeroID}
+        />
+      </div>
+    </>
   )
 }
 

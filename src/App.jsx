@@ -89,7 +89,6 @@ function App() {
         </div>
         : <Game deck={deck} command={command} setCommand={setCommand} openModal={openModal} setOpenModal={setOpenModal} startGame={startGame} setStartGame={setStartGame} />
       }
-
       {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config} setConfig={setConfig} />}
       <SpeechListener setCommand={setCommand} />
 
