@@ -17,7 +17,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         uri={dungeonHero.slot[0]?.uri}
         description={dungeonHero.slot[0]?.description}
         bg={dungeonHero.slot[0]?.title ? "" : "/assets/gloves.jpg"}
-
+        isUse={dungeonHero.slot[0]?.isUse}
       />
       <Card
         selectID={setSelectHeroID}
@@ -35,6 +35,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         uri={dungeonHero.slot[1]?.uri}
         description={dungeonHero.slot[1]?.description}
         bg={dungeonHero.slot[1]?.title ? "" : "/assets/gloves.jpg"}
+        isUse={dungeonHero.slot[1]?.isUse}
       />
     </div>
     <div aria-hidden="true" style={{
@@ -50,6 +51,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         uri={dungeonHero.bag[0]?.uri}
         description={dungeonHero.bag[0]?.description}
         bg={dungeonHero.bag[0]?.title ? "" : "https://i5.walmartimages.com/asr/e71952b7-afee-4c3c-9ab4-22b9a0a203d8.4aea7be1a08de97790b7b9767c930302.jpeg"}
+        isUse={dungeonHero.bag[0]?.isUse}
       />
     </div>
   </div>

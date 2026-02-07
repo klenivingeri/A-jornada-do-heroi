@@ -1,7 +1,7 @@
 import { readSimpleCommand } from '../../util/speechReader';
 import styles from './card.module.css';
 
-export const Card = ({ id, title = '', value = 0, uri = '', bg = '', selectID }) => {
+export const Card = ({ id, title = '', value = 0, uri = '', bg = '', selectID, isUse = false }) => {
   const normalizedTitle = title?.trim();
   const cardLabel = normalizedTitle ? `Carta: ${normalizedTitle}` : 'Carta vazia';
 
@@ -24,6 +24,7 @@ export const Card = ({ id, title = '', value = 0, uri = '', bg = '', selectID })
         backgroundClip: 'content-box',
         border: !title ? '1px solid white' : '',
         padding: !title ? '2px' : '',
+        opacity: isUse ? 0.5 : 1,
       }}
     >
       {title && (
