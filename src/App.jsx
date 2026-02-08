@@ -6,6 +6,7 @@ import { Modal } from './components/Modal/index.jsx';
 import SpeechListener from './components/SpeechListener/SpeechListener.jsx';
 import { commandMatch } from './util/commandMatch.js';
 import BackgroundMusic from './components/BackgroundMusic/BackgroundMusic.jsx';
+import { readSimpleCommand } from './util/speechReader';
 
 const statusGame = {
   enemy: 1,
@@ -66,32 +67,88 @@ function App() {
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [startGame, setStartGame] = useState(true)
+  const [startGame, setStartGame] = useState(false)
+  const [isDead, setIsDead] = useState(false)
 
   // UseEffect para reagir aos comandos de voz sem causar loop infinito
   useEffect(() => {
     if (!openModal) {
       if (commandMatch(command, ["abrir menu", "abrir configurações"])) {
         setOpenModal(true)
-        setCommand("") // Limpa o comando após executar
       }
-      if (commandMatch(command, ["iniciar jogo", "iniciar game"])) {
+      if (commandMatch(command, ["iniciar"])) {
         setStartGame(true)
-        setCommand("") // Limpa o comando após executar
       }
+      if (commandMatch(command, ["retorn"])) {
+        setStartGame(false)
+        setIsDead(false)
+      }
+      setCommand("")
     }
   }, [command])
 
+  // UseEffect para ler mensagem quando o herói morre
+  useEffect(() => {
+    if (isDead) {
+      readSimpleCommand('Você morreu! Diga "retornar" para voltar à tela inicial')
+    }
+  }, [isDead])
+
+  
+
   return (
     <div className="app">
-      {!startGame
-        ? <div>
-          <p>Bem vindo ao jogo! Use comandos de voz para interagir. Diga "abrir menu" para acessar as configurações.</p>
-          <p>Ou Iniciar jogo dizendo "iniciar jogo". Diga "fechar menu" para fechar as configurações.</p>
+      {!startGame ? (
+        <div style={{ 
+          color: 'white', 
+          padding: '40px', 
+          textAlign: 'center',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          <h1 style={{ marginBottom: '30px' }}>A Jornada</h1>
+          <p style={{ marginBottom: '20px', fontSize: '18px' }}>
+            Bem-vindo ao jogo! Use comandos de voz para interagir.
+          </p>
+          <p style={{ marginBottom: '10px' }}>Diga <strong>"iniciar"</strong> para começar o jogo</p>
+          <p>Diga <strong>"abrir menu"</strong> para acessar as configurações</p>
         </div>
-        : <Game deck={deck} command={command} setCommand={setCommand} openModal={openModal} setOpenModal={setOpenModal} startGame={startGame} setStartGame={setStartGame} />
-      }
-      {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config} setConfig={setConfig} />}
+      ) : isDead ? (
+        <div style={{ 
+          color: 'red', 
+          padding: '40px', 
+          textAlign: 'center',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          <h1 style={{ marginBottom: '30px', fontSize: '48px' }}>💀 Você Morreu!</h1>
+          <p style={{ fontSize: '24px', marginBottom: '20px' }}>
+            Sua jornada chegou ao fim...
+          </p>
+          <p style={{ fontSize: '18px', color: 'white' }}>
+            Diga <strong>"retornar"</strong> para voltar à tela inicial
+          </p>
+        </div>
+      ) : (
+        <Game 
+          deck={deck} 
+          command={command} 
+          setCommand={setCommand} 
+          openModal={openModal} 
+          setIsDead={setIsDead} 
+        />
+      )}
+
+      {openModal && (
+        <Modal 
+          command={command} 
+          setCommand={setCommand} 
+          onClose={setOpenModal} 
+          config={config} 
+          setConfig={setConfig} 
+        />
+      )}
+      
       <SpeechListener setCommand={setCommand} />
       <BackgroundMusic volume={config.find(item => item.type === "ambient")?.value || 10} />
     </div>

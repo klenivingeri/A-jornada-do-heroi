@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { HeroContainer } from './components/HeroContainer/HeroContainer';
 import { Board } from './components/Board/Board';
 import { commandMatch } from './util/commandMatch';
@@ -36,15 +36,20 @@ const initHero = {
   bag: [],
   skill: [], // sempre que o heroi morrer ou estiver com carta de ataque no slot, ou carta de defesa no slot, deve ser verificao se existe algum efeito pra ser aplicado
   gold: 0,
-  isDead: false,
 }
 
-function Game({ deck, command, setCommand, openModal }) {
+function Game({ deck, command, setCommand, openModal, setIsDead }) {
   const [deckState, setDeckState] = useState(() => deck);
   const [dungeonCards, setDungeonCards] = useState(() => [initItem])
   const [dungeonHero, setDungeonHero] = useState(() => initHero)
   const [selectCardID, setSelectCardID] = useState(() => (''))
   const [selectHeroID, setSelectHeroID] = useState(() => (''))
+  
+  // Referência para o áudio do heartbeat
+  const heartbeatAudioRef = useRef(null)
+  
+  // Referência para armazenar o valor anterior do herói
+  const prevHeroValueRef = useRef(dungeonHero.hero.value)
 
   // Função para tocar sons de efeito
   const playSound = (soundFile, volume = 0.5, useFadeOut = true) => {
@@ -145,13 +150,78 @@ function Game({ deck, command, setCommand, openModal }) {
     }
   }, [dungeonCards, deckState]);
 
+  // Efeito para tocar heartbeat quando a vida está baixa
+  useEffect(() => {
+    const heroValue = dungeonHero.hero.value
+    
+    // Se a vida está abaixo de 6, toca o heartbeat
+    if (heroValue > 0 && heroValue < 6) {
+      // Se o áudio ainda não foi criado, cria
+      if (!heartbeatAudioRef.current) {
+        const audio = new Audio('/assets/effect/heartbeat.mp3')
+        audio.loop = true
+        heartbeatAudioRef.current = audio
+      }
+      
+      const audio = heartbeatAudioRef.current
+      
+      // Calcula volume e velocidade baseado na vida
+      // Quanto menor a vida, mais alto e mais rápido
+      // value 5: volume 0.3, rate 1.0
+      // value 1: volume 0.7, rate 2.0
+      const volumeBase = 0.3
+      const volumeIncrement = (6 - heroValue) * 0.1 // 0.1 por ponto de vida perdido
+      const volume = Math.min(volumeBase + volumeIncrement, 0.8)
+      
+      const rateBase = 1.0
+      const rateIncrement = (6 - heroValue) * 0.25 // 0.25 por ponto de vida perdido
+      const playbackRate = Math.min(rateBase + rateIncrement, 2.5)
+      
+      audio.volume = volume
+      audio.playbackRate = playbackRate
+      
+      // Toca o áudio se não estiver tocando
+      if (audio.paused) {
+        audio.play().catch(err => console.log('Erro ao reproduzir heartbeat:', err))
+      }
+    } else {
+      // Para o áudio se a vida está OK ou herói morreu
+      if (heartbeatAudioRef.current && !heartbeatAudioRef.current.paused) {
+        heartbeatAudioRef.current.pause()
+        heartbeatAudioRef.current.currentTime = 0
+      }
+    }
+    
+    // Cleanup: para o áudio quando o componente desmontar
+    return () => {
+      if (heartbeatAudioRef.current) {
+        heartbeatAudioRef.current.pause()
+        heartbeatAudioRef.current.currentTime = 0
+      }
+    }
+  }, [dungeonHero.hero.value])
+
+  // Efeito para tocar som quando o herói recebe dano
+  useEffect(() => {
+    const currentValue = dungeonHero.hero.value
+    const prevValue = prevHeroValueRef.current
+    
+    // Se o valor diminuiu, toca o som de hit
+    if (currentValue < prevValue && currentValue > 0) {
+      playSound('hero_hit', 0.6, false)
+    }
+    
+    // Atualiza o valor anterior
+    prevHeroValueRef.current = currentValue
+  }, [dungeonHero.hero.value])
+
   useEffect(() => {
     if (!openModal) {
       const [actiont, ...text] = command.split(" ")
       const restComand = text.join(" ")
       let heroChanged = false
 
-      if (commandMatch(actiont, ["compra", "guarda", "vende"])) {
+      if (commandMatch(actiont, ["compra", "guarda", "descar","discar"])) {
 
         const nextHero = {
           ...dungeonHero,
@@ -185,8 +255,8 @@ function Game({ deck, command, setCommand, openModal }) {
               playSound('equip')
               return {}
             }
-            if (commandMatch(actiont, ["vende"])) {
-              nextHero.gold = nextHero.gold + card.value
+            if (commandMatch(actiont, ["descar","discar"])) {
+
               heroChanged = true
               setSelectCardID(null)
               return {}
@@ -196,7 +266,6 @@ function Game({ deck, command, setCommand, openModal }) {
               
               // Auto-consumo para poção no slot
               if (card.type === 'potion' && card.auto?.slot) {
-                const healAmount = Math.min(card.value, nextHero.hero.maxValue - nextHero.hero.value)
                 nextHero.hero.value = Math.min(nextHero.hero.value + card.value, nextHero.hero.maxValue)
                 cardWithUseFlag.isUse = true
               }
@@ -300,11 +369,13 @@ function Game({ deck, command, setCommand, openModal }) {
           ...dungeonHero,
           bag: [...dungeonHero.bag],
           slot: [...dungeonHero.slot],
-          skill: [...dungeonHero.skill]
+          skill: [...dungeonHero.skill],
+          hero: { ...dungeonHero.hero }
         }
 
-        // Verifica se há 2 itens no slot sem seleção específica
-        if (nextHero.slot.length === 2 && !selectHeroID && !restComand) {
+        // Verifica se há 2 ou mais cartas de skill no slot sem seleção específica
+        const skillCardsInSlot = nextHero.slot.filter(card => card.type === 'skill')
+        if (skillCardsInSlot.length >= 2 && !selectHeroID && !restComand) {
           readSimpleCommand('você possui itens iguais selecione uma mão')
           setCommand("")
           return
@@ -315,23 +386,81 @@ function Game({ deck, command, setCommand, openModal }) {
         const shouldAutoUse = (selectCardID && nextHero.slot.length === 1) || 
           (nextHero.slot.length === 1 && nextHero.slot[0].type === 'skill')
 
-        // Processa cards do slot do herói
-        nextHero.slot = nextHero.slot.filter((card) => {
+        // Primeiro, encontra a carta que será usada
+        let cardToUse = null
+        let cardToUseIndex = -1
+        
+        nextHero.slot.forEach((card, index) => {
+          if (cardToUse) return // Já encontrou
+          
           const infoCard = `${normalizeText(card.title)} ${card.value}`
-
-          // Verifica se deve usar o ID do card selecionado ou o comando de texto
           const shouldProcessCard = shouldAutoUse || (selectHeroID
             ? card.id === selectHeroID
             : commandMatch(restComand, [infoCard]))
 
           if (shouldProcessCard) {
-            nextHero.skill.push(card)
+            cardToUse = card
+            cardToUseIndex = index
+          }
+        })
+
+        // Se encontrou uma carta para usar, processa ela
+        if (cardToUse) {
+          // Se a carta tem effect de attack ou defense, tenta aplicar em outra carta
+          if (cardToUse.effect === 'attack' || cardToUse.effect === 'defense') {
+            const targetType = cardToUse.effect // 'attack' ou 'defense'
+            let applied = false
+            
+            // Procura no slot por carta do tipo correspondente (excluindo a própria)
+            for (let i = 0; i < nextHero.slot.length; i++) {
+              if (i !== cardToUseIndex && nextHero.slot[i].type === targetType) {
+                nextHero.slot[i] = {
+                  ...nextHero.slot[i],
+                  value: nextHero.slot[i].value + cardToUse.value
+                }
+                applied = true
+                heroChanged = true
+                
+                // Toca som se existir
+                if (cardToUse.song) {
+                  playSound('anvil-hit', 0.5)
+                }
+                break
+              }
+            }
+            
+            // Se não encontrou no slot, procura na bag
+            if (!applied) {
+              for (let i = 0; i < nextHero.bag.length; i++) {
+                if (nextHero.bag[i].type === targetType) {
+                  nextHero.bag[i] = {
+                    ...nextHero.bag[i],
+                    value: nextHero.bag[i].value + cardToUse.value
+                  }
+                  applied = true
+                  heroChanged = true
+                  
+                  // Toca som se existir
+                  if (cardToUse.song) {
+                    playSound(cardToUse.song, cardToUse.songVolume || 0.5)
+                  }
+                  break
+                }
+              }
+            }
+            
+            // Remove a carta usada do slot
+            nextHero.slot = nextHero.slot.filter((_, index) => index !== cardToUseIndex)
+            setSelectHeroID(null)
+            
+          } else {
+            // Para outros tipos de carta, comportamento normal (vai para skill)
+            nextHero.skill.push(cardToUse)
+            nextHero.slot = nextHero.slot.filter((_, index) => index !== cardToUseIndex)
             heroChanged = true
             setSelectHeroID(null)
-            return false // Remove do slot
           }
-          return true // Mantém no slot
-        })
+        }
 
         if (heroChanged) {
           setDungeonHero(nextHero)
@@ -363,9 +492,14 @@ function Game({ deck, command, setCommand, openModal }) {
             
             // Verifica se o herói morreu
             if (nextHero.hero.value <= 0) {
-              nextHero.isDead = true
               // Verifica e aplica revive se disponível
               checkRevive(nextHero)
+              
+              // Se ainda está morto após tentar revive, marca como morto
+              if (nextHero.hero.value <= 0) {
+                nextHero.isDead = true
+                setIsDead(true)
+              }
             }
             
             // Converte o valor do enemy em gold
@@ -544,9 +678,14 @@ function Game({ deck, command, setCommand, openModal }) {
                 
                 // Verifica se o herói morreu
                 if (nextHero.hero.value <= 0) {
-                  nextHero.isDead = true
                   // Verifica e aplica revive se disponível
                   checkRevive(nextHero)
+                  
+                  // Se ainda está morto após tentar revive, marca como morto
+                  if (nextHero.hero.value <= 0) {
+                    nextHero.isDead = true
+                    setIsDead(true)
+                  }
                 }
                 
                 // Remove a carta de defesa do slot

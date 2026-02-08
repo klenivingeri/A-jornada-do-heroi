@@ -27,7 +27,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Dragão",
     song: 'enemy_dragon',
     songVolume: 0.2,
-    value: generateRange(7 + enemy, 13 + enemy),
+    value: generateRange(7 + enemy, 15 + enemy),
     type: "enemy",
     uri: "https://wallpapers.com/images/featured/imagens-do-dragao-3d-7fnp82l6eor2rsxo.jpg",
     description: "Dragão inimigo",
@@ -35,8 +35,8 @@ const getEnemyCards = (enemy = 0) => [
   {
     title: "Gosma",
     value: generateRange(3 + enemy, 6 + enemy),
-    song: 'enemy_skeleton',
-    songVolume: 0.5,
+    song: 'dead',
+    songVolume: 0.2,
     type: "enemy",
     description: "Gosma inimiga",
     uri: "https://t4.ftcdn.net/jpg/05/94/89/73/360_F_594897314_F1ROeMCmV6zvRveKpXQk6Cl2vgiAfttn.jpg",
@@ -44,7 +44,7 @@ const getEnemyCards = (enemy = 0) => [
   {
     title: "Esqueleto",
     song: 'enemy_skeleton',
-    songVolume: 0.5,
+    songVolume: 0.2,
     value: generateRange(5 + enemy, 8 + enemy),
     type: "enemy",
     description: "Esqueleto inimigo",
@@ -53,7 +53,7 @@ const getEnemyCards = (enemy = 0) => [
   {
     title: "Vampiro",
     song: 'enemy_skeleton',
-    songVolume: 0.5,
+    songVolume: 0.2,
     value: generateRange(2 + enemy, 7 + enemy),
     type: "enemy",
     description: "Vampiro inimigo",
@@ -70,12 +70,48 @@ const getEnemyCards = (enemy = 0) => [
   },
     {
     title: "Fantasma",
-    song: 'enemy_skeleton',
-    songVolume: 0.5,
+    song: 'dead',
+    songVolume: 0.2,
     value: generateRange(4 + enemy, 10 + enemy),
     type: "enemy",
     description: "Fantasma inimigo",
-    uri: "https://r2.starryai.com/results/1051467097/5bfb197a-c221-4519-b718-3a6e61892e8b.webp",
+    uri: "https://img.freepik.com/fotos-premium/um-fantasma-com-um-veu-branco-esta-na-frente-de-um-fundo-preto_899894-44885.jpg",
+  },
+      {
+    title: "Zumbi",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(4 + enemy, 10 + enemy),
+    type: "enemy",
+    description: "Zumbi inimigo",
+    uri: "https://img.freepik.com/fotos-premium/um-grupo-de-zumbis-um-retrato-de-terror-do-grupo-de-mortos-vivos-na-cidade_734790-1244.jpg",
+  },
+      {
+    title: "Sereia",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(4 + enemy, 10 + enemy),
+    type: "enemy",
+    description: "Sereia inimigo",
+    uri: "https://i.pinimg.com/originals/fe/5a/25/fe5a251e96710fda949e17f95fd96a83.png",
+  },
+  {
+    title: "Espantalho",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(4 + enemy, 11 + enemy),
+    type: "enemy",
+    description: "Espantalho inimigo",
+    uri: "https://wallpapers.com/images/featured/imagens-de-espantalho-ki8gl3trbbd8saei.jpg",
+  },
+  {
+    title: "Ogro",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(4 + enemy, 11 + enemy),
+    type: "enemy",
+    description: "Ogro inimigo",
+    uri: "https://pbs.twimg.com/media/Cct-553UsAIFtWV.jpg",
   },
 ];
 
@@ -84,6 +120,7 @@ const getShieldCards = (shield = 0) => [
     title: "Defesa",
     value: generateRange(2 + shield, 9 + shield),
     type: "defense",
+    isBuff: false, // indica que a carta é um buff de defesa, ou seja, ela pode ser usada para aumentar a defesa do herói, e o valor dela deve ser somado a defesa atual do herói, e quando a carta for destruida ou descartada o valor dela deve ser subtraido da defesa atual do herói
     actions: {
       bag: ["pegar", "descartar"], //retirar é tirar da bag e adicinar no slot, descartar é destruir e pegar seu valor em ouro
       hand: ["Defesa"], // é absorver o dano do inimigo com base no value, se o dano for maior que o value, o restante do dano passa para a vida do herói,e e a defesa é destruida, caso contradio só diminui a quantidade de defesa com base no dado do inimigo
@@ -99,6 +136,7 @@ const getAttackCards = (attack = 0) => [
   {
     title: "Ataque",
     value: generateRange(2 + attack, 9 + attack),
+    isBuff: false,
     type: "attack",
     actions: {
       bag: ["pegar", "descartar"],
@@ -158,12 +196,12 @@ const getSkillCards = (skill = 0) => {
 
   return [
     {
-      title: "Dobra Ataque",
-      value: [2],
+      title: "Aumenta Ataque",
+      value: [2 + skill],
       type: "skill",
-      effect: "double_attack", // o efeito é aplicado apenas em cartas type:double_attack
+      effect: "attack", // o efeito é aplicado apenas em cartas type:double_attack
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em um ataque deve reduzir 1 do sequencial
-      description: "Dobra a carta de ataque atual do herói.",
+      description: "Aumenta o ataque atual do herói.",
       actions: {
         bag: ["pegar", "descartar"],
         hand: ["usar"],// multiplica o valor de ataque com base no value da carta, após a carta ser utilizada ela é destruida e libera o slot.
@@ -175,9 +213,9 @@ const getSkillCards = (skill = 0) => {
       song: 'revive',
     },
     {
-      title: "Dobra Defesa",
-      value: [2],
-      effect: "double_defense", // o efeito é aplicado apenas em cartas type:defense
+      title: "Aumenta Defesa",
+      value: [2 + skill],
+      effect: "defense", // o efeito é aplicado apenas em cartas type:defense
       type: "skill",
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em uma defesa deve reduzir 1 do sequencial
       actions: {
@@ -257,7 +295,7 @@ const createDeck = (playerStats = {}) => {
   const deck = [];
 
   // Adiciona cartas garantindo que não haja duplicatas
-  deck.push(...getRandomCards(getEnemyCards(enemy), 15, deck)); // 15 inimigos
+  deck.push(...getRandomCards(getEnemyCards(enemy), 60, deck)); // 15 inimigos
   deck.push(...getRandomCards(getAttackCards(attack), 10, deck)); // 10 ataques
   deck.push(...getRandomCards(getShieldCards(shield), 8, deck)); // 8 escudos
   deck.push(...getRandomCards(getPotionCards(potion), 7, deck)); // 7 vidas/poções
