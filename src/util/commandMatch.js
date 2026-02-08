@@ -22,7 +22,6 @@ export const commandMatch = (text, phrases, threshold = 0.75) => {
     });
 
     const score = matches / phraseWords.length;
-    console.log(score, threshold, score >= threshold)
     return score >= threshold;
   });
 }

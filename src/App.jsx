@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Modal } from './components/Modal/index.jsx';
 import SpeechListener from './components/SpeechListener/SpeechListener.jsx';
 import { commandMatch } from './util/commandMatch.js';
+import BackgroundMusic from './components/BackgroundMusic/BackgroundMusic.jsx';
 
 const statusGame = {
   enemy: 1,
@@ -24,9 +25,10 @@ const menuConfiguracoes = [
     description: "Música que toca no fundo",
     textCommand: "som ambiente [valor]",
     command: ["som ambiente"],
+    type: "ambient",
     min: 0,
     max: 100,
-    value: 50
+    value: 10
   },
   {
     text: "Som dos Efeitos",
@@ -91,7 +93,7 @@ function App() {
       }
       {openModal && <Modal command={command} setCommand={setCommand} onClose={setOpenModal} config={config} setConfig={setConfig} />}
       <SpeechListener setCommand={setCommand} />
-
+      <BackgroundMusic volume={config.find(item => item.type === "ambient")?.value || 10} />
     </div>
   )
 }

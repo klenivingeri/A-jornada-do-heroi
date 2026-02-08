@@ -25,6 +25,8 @@ const generateId = () => {
 const getEnemyCards = (enemy = 0) => [
   {
     title: "Dragão",
+    song: 'enemy_dragon',
+    songVolume: 0.2,
     value: generateRange(7 + enemy, 13 + enemy),
     type: "enemy",
     uri: "https://wallpapers.com/images/featured/imagens-do-dragao-3d-7fnp82l6eor2rsxo.jpg",
@@ -33,12 +35,16 @@ const getEnemyCards = (enemy = 0) => [
   {
     title: "Gosma",
     value: generateRange(3 + enemy, 6 + enemy),
+    song: 'enemy_skeleton',
+    songVolume: 0.5,
     type: "enemy",
     description: "Gosma inimiga",
     uri: "https://t4.ftcdn.net/jpg/05/94/89/73/360_F_594897314_F1ROeMCmV6zvRveKpXQk6Cl2vgiAfttn.jpg",
   },
   {
     title: "Esqueleto",
+    song: 'enemy_skeleton',
+    songVolume: 0.5,
     value: generateRange(5 + enemy, 8 + enemy),
     type: "enemy",
     description: "Esqueleto inimigo",
@@ -46,6 +52,8 @@ const getEnemyCards = (enemy = 0) => [
   },
   {
     title: "Vampiro",
+    song: 'enemy_skeleton',
+    songVolume: 0.5,
     value: generateRange(2 + enemy, 7 + enemy),
     type: "enemy",
     description: "Vampiro inimigo",
@@ -53,6 +61,8 @@ const getEnemyCards = (enemy = 0) => [
   },
   {
     title: "Rato",
+    song: 'enemy_mouse',
+    songVolume: 0.5,
     value: generateRange(2 + enemy, 7 + enemy),
     type: "enemy",
     description: "Rato inimigo",
@@ -60,6 +70,8 @@ const getEnemyCards = (enemy = 0) => [
   },
     {
     title: "Fantasma",
+    song: 'enemy_skeleton',
+    songVolume: 0.5,
     value: generateRange(4 + enemy, 10 + enemy),
     type: "enemy",
     description: "Fantasma inimigo",

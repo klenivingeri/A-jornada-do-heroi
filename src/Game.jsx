@@ -45,11 +45,56 @@ function Game({ deck, command, setCommand, openModal }) {
   const [selectCardID, setSelectCardID] = useState(() => (''))
   const [selectHeroID, setSelectHeroID] = useState(() => (''))
 
+  // Função para tocar sons de efeito
+  const playSound = (soundFile, volume = 0.5, useFadeOut = true) => {
+    console.log('Tocando som:', soundFile, 'volume:', volume);
+    // Se o arquivo não tem extensão, adiciona .mp3 por padrão
+    const fileName = soundFile.includes('.') ? soundFile : `${soundFile}.mp3`;
+    console.log('Arquivo completo:', `/assets/effect/${fileName}`);
+    const audio = new Audio(`/assets/effect/${fileName}`);
+    
+    // Define o volume inicial (respeitando o valor passado)
+    audio.volume = volume;
+    
+    audio.play().catch(err => console.log('Erro ao reproduzir som:', err));
+    
+    // Se useFadeOut for false, apenas reproduz o som sem efeitos
+    if (!useFadeOut) {
+      return;
+    }
+    
+    // Fade out: diminui o volume gradualmente até 0
+    const fadeOutDuration = 1000; // duração máxima de 0.8 segundos
+    const fadeOutInterval = 50; // atualiza a cada 50ms
+    const steps = fadeOutDuration / fadeOutInterval;
+    const volumeDecrement = volume / steps;
+    
+    let currentVolume = volume;
+    const fadeOut = setInterval(() => {
+      currentVolume -= volumeDecrement;
+      if (currentVolume <= 0) {
+        audio.pause();
+        audio.currentTime = 0;
+        clearInterval(fadeOut);
+      } else {
+        audio.volume = currentVolume;
+      }
+    }, fadeOutInterval);
+    
+    // Garante que o áudio seja pausado após 0.8 segundos
+    setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      clearInterval(fadeOut);
+    }, fadeOutDuration);
+  }
+
   useEffect(() => {
     const activeCards = dungeonCards.filter((card) => card.title)
     const countCard = activeCards.length
 
     if (countCard <= 1 && deckState.length > 0) {
+      playSound('frap_card', 0.5, false)
       const newCards = deckState.slice(0, 3)
       setDungeonCards([...newCards, ...activeCards])
       setDeckState(deckState.slice(3))
@@ -68,6 +113,7 @@ function Game({ deck, command, setCommand, openModal }) {
       const [actiont, ...text] = command.split(" ")
       const restComand = text.join(" ")
       let heroChanged = false
+
       if (commandMatch(actiont, ["compra", "guarda", "descarta"])) {
 
         const nextHero = {
@@ -99,6 +145,7 @@ function Game({ deck, command, setCommand, openModal }) {
               nextHero.bag.push(cardWithUseFlag)
               heroChanged = true
               setSelectCardID(null)
+              playSound('equip')
               return {}
             }
             if (commandMatch(actiont, ["descarta"])) {
@@ -107,7 +154,7 @@ function Game({ deck, command, setCommand, openModal }) {
               setSelectCardID(null)
               return {}
             }
-            if (commandMatch(actiont, ["pega", "compra"]) && nextHero.slot.length < 2) {
+            if (commandMatch(actiont, ["compra"]) && nextHero.slot.length < 2) {
               const cardWithUseFlag = { ...card, isUse: false }
               
               // Auto-consumo para poção no slot
@@ -126,6 +173,15 @@ function Game({ deck, command, setCommand, openModal }) {
               nextHero.slot.push(cardWithUseFlag)
               heroChanged = true
               setSelectCardID(null)
+              
+              playSound('buy')
+              playSound('equip')
+              
+              // Se o card não possui auto, seleciona ele automaticamente
+              if (!card.auto) {
+                setSelectHeroID(card.id)
+              }
+              
               return {}
             }
           }
@@ -183,6 +239,13 @@ function Game({ deck, command, setCommand, openModal }) {
               nextHero.slot.push(cardWithUseFlag)
               heroChanged = true
               setSelectHeroID(null)
+              playSound('equip')
+              
+              // Se o card não possui auto, seleciona ele automaticamente
+              if (!card.auto) {
+                setSelectHeroID(card.id)
+              }
+              
               return false // Remove da bag
             }
           }
@@ -203,14 +266,19 @@ function Game({ deck, command, setCommand, openModal }) {
           skill: [...dungeonHero.skill]
         }
 
+        // Se selectCardID está definido e há apenas uma carta no slot, usa automaticamente
+        // Ou se há apenas uma carta no slot e ela é do tipo skill, usa automaticamente
+        const shouldAutoUse = (selectCardID && nextHero.slot.length === 1) || 
+          (nextHero.slot.length === 1 && nextHero.slot[0].type === 'skill')
+
         // Processa cards do slot do herói
         nextHero.slot = nextHero.slot.filter((card) => {
           const infoCard = `${normalizeText(card.title)} ${card.value}`
 
           // Verifica se deve usar o ID do card selecionado ou o comando de texto
-          const shouldProcessCard = selectHeroID
+          const shouldProcessCard = shouldAutoUse || (selectHeroID
             ? card.id === selectHeroID
-            : commandMatch(restComand, [infoCard])
+            : commandMatch(restComand, [infoCard]))
 
           if (shouldProcessCard) {
             nextHero.skill.push(card)
@@ -250,8 +318,16 @@ function Game({ deck, command, setCommand, openModal }) {
             if (nextHero.hero.value > card.value) {
               // Diminui o valor do herói pelo valor do inimigo
               nextHero.hero.value = nextHero.hero.value - card.value
+              // Converte o valor do enemy em gold
+              nextHero.gold = nextHero.gold + card.value
               heroChanged = true
               setSelectCardID(null)
+              
+              // Toca o som do enemy se existir
+              if (card.song) {
+                playSound(card.song, card.songVolume || 0.5)
+              }
+              
               return {} // Destrói o card (retorna objeto vazio)
             }
           }
@@ -261,6 +337,180 @@ function Game({ deck, command, setCommand, openModal }) {
         if (heroChanged) {
           setDungeonHero(nextHero)
           setDungeonCards(restDungeonCards)
+        }
+      }
+
+      if (commandMatch(actiont, ["ataque", "atacar"])) {
+        let heroChanged = false
+        let dungeonChanged = false
+        const nextHero = {
+          ...dungeonHero,
+          bag: [...dungeonHero.bag],
+          slot: [...dungeonHero.slot],
+          skill: [...dungeonHero.skill],
+          hero: { ...dungeonHero.hero }
+        }
+
+        // Se selectCardID está definido, verifica se há apenas uma carta de ataque no slot
+        const attackCards = nextHero.slot.filter(c => c.type === 'attack')
+        const shouldAutoAttack = selectCardID && attackCards.length === 1 && !selectHeroID && !restComand
+
+        // Processa cards do slot do herói para usar carta de ataque
+        let attackCard = null
+        nextHero.slot = nextHero.slot.filter((card) => {
+          const infoCard = `${normalizeText(card.title)} ${card.value}`
+
+          // Verifica se deve usar o ID do card selecionado ou o comando de texto
+          const shouldProcessCard = (shouldAutoAttack && card.type === 'attack') || (selectHeroID
+            ? card.id === selectHeroID
+            : commandMatch(restComand, [infoCard]))
+
+          if (shouldProcessCard && card.type === 'attack') {
+            attackCard = card
+            heroChanged = true
+            setSelectHeroID(null)
+            return false // Remove a carta de ataque do slot
+          }
+          return true // Mantém no slot
+        })
+
+        // Se encontrou carta de ataque, processa o ataque no inimigo
+        if (attackCard) {
+          const restDungeonCards = dungeonCards.map((card) => {
+            const infoCard = `${normalizeText(card.title)} ${card.value}`
+
+            // Verifica se deve usar o ID do card selecionado ou o comando de texto
+            const shouldProcessCard = selectCardID
+              ? card.id === selectCardID
+              : commandMatch(restComand, [infoCard])
+
+            if (shouldProcessCard && card.type === 'enemy') {
+              // Diminui o valor do inimigo pelo valor da carta de ataque
+              const newEnemyValue = card.value - attackCard.value
+              dungeonChanged = true
+              setSelectCardID(null)
+              
+              // Se o inimigo foi destruído (value <= 0)
+              if (newEnemyValue <= 0) {
+                // Converte o valor do enemy em gold
+                nextHero.gold = nextHero.gold + card.value
+                // Toca o som do enemy se existir
+                if (card.song) {
+                  playSound(card.song, card.songVolume || 0.5)
+                }
+                return {} // Destrói o card do inimigo
+              }
+              
+              // Inimigo sobreviveu, mas com value reduzido
+              return { ...card, value: newEnemyValue }
+            }
+            return card
+          })
+
+          if (dungeonChanged) {
+            setDungeonCards(restDungeonCards)
+          }
+        }
+
+        if (heroChanged) {
+          setDungeonHero(nextHero)
+        }
+      }
+
+      if (commandMatch(actiont, ["defesa", "defender", "defende", "escudo"])) {
+        let heroChanged = false
+        let dungeonChanged = false
+        const nextHero = {
+          ...dungeonHero,
+          bag: [...dungeonHero.bag],
+          slot: [...dungeonHero.slot],
+          skill: [...dungeonHero.skill],
+          hero: { ...dungeonHero.hero }
+        }
+
+        // Se selectCardID está definido, verifica se há apenas uma carta de defesa no slot
+        const defenseCards = nextHero.slot.filter(c => c.type === 'defense')
+        const shouldAutoDefend = selectCardID && defenseCards.length === 1 && !selectHeroID && !restComand
+
+        // Processa cards do slot do herói para usar carta de defesa
+        let defenseCard = null
+        let defenseCardIndex = -1
+        
+        nextHero.slot.forEach((card, index) => {
+          const infoCard = `${normalizeText(card.title)} ${card.value}`
+
+          // Verifica se deve usar o ID do card selecionado ou o comando de texto
+          const shouldProcessCard = (shouldAutoDefend && card.type === 'defense') || (selectHeroID
+            ? card.id === selectHeroID
+            : commandMatch(restComand, [infoCard]))
+
+          if (shouldProcessCard && card.type === 'defense' && defenseCard === null) {
+            defenseCard = card
+            defenseCardIndex = index
+            heroChanged = true
+            setSelectHeroID(null)
+          }
+        })
+
+        // Se encontrou carta de defesa, processa a defesa contra o inimigo
+        if (defenseCard) {
+          const restDungeonCards = dungeonCards.map((card) => {
+            const infoCard = `${normalizeText(card.title)} ${card.value}`
+
+            // Verifica se deve usar o ID do card selecionado ou o comando de texto
+            const shouldProcessCard = selectCardID
+              ? card.id === selectCardID
+              : commandMatch(restComand, [infoCard])
+
+            if (shouldProcessCard && card.type === 'enemy') {
+              dungeonChanged = true
+              setSelectCardID(null)
+              
+              const enemyDamage = card.value
+              const defenseValue = defenseCard.value
+              
+              // Se o dano do inimigo é maior que a defesa
+              if (enemyDamage > defenseValue) {
+                // O escudo absorve o que pode e é destruído
+                const remainingDamage = enemyDamage - defenseValue
+                nextHero.hero.value = Math.max(0, nextHero.hero.value - remainingDamage)
+                // Remove a carta de defesa do slot
+                nextHero.slot = nextHero.slot.filter((_, index) => index !== defenseCardIndex)
+              } else {
+                // O escudo absorve todo o dano e só perde value
+                defenseCard.value = defenseValue - enemyDamage
+                
+                // Se o escudo zerou, remove do slot
+                if (defenseCard.value <= 0) {
+                  nextHero.slot = nextHero.slot.filter((_, index) => index !== defenseCardIndex)
+                } else {
+                  // Atualiza o value do escudo no slot
+                  nextHero.slot[defenseCardIndex] = { ...defenseCard }
+                }
+              }
+              playSound('shield')
+              
+              // Converte o valor do enemy em gold
+              nextHero.gold = nextHero.gold + card.value
+              
+              // Toca o som do enemy se existir
+              if (card.song) {
+                playSound(card.song, card.songVolume || 0.5)
+              }
+              
+              // Inimigo é sempre destruído após o ataque
+              return {}
+            }
+            return card
+          })
+
+          if (dungeonChanged) {
+            setDungeonCards(restDungeonCards)
+          }
+        }
+
+        if (heroChanged) {
+          setDungeonHero(nextHero)
         }
       }
       
