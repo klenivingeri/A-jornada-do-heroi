@@ -7,6 +7,7 @@ import SpeechListener from './components/SpeechListener/SpeechListener.jsx';
 import { commandMatch } from './util/commandMatch.js';
 import BackgroundMusic from './components/BackgroundMusic/BackgroundMusic.jsx';
 import { readSimpleCommand } from './util/speechReader';
+import Rules from './components/Rules/Rules.jsx';
 
 const statusGame = {
   enemy: 1,
@@ -41,12 +42,22 @@ const menuConfiguracoes = [
     value: 50
   },
   {
-    text: "Falas de Efeitos",
-    textCommand: "ativar falas, ou desativar falas",
-    description:
-      "Ativado: fala o nome das cartas. Desativado: apenas o efeito sonoro será reproduzido",
-    command: ["ativar falas", "desativar falas"],
-    active: true
+    text: "Velocidade da Fala",
+    description: " Velocidade da fala do narrador, que lê as ações do jogo",
+    command: ["velocidade"],
+    textCommand: "velocidade [valor]",
+    min: 0,
+    max: 100,
+    value: 50
+  },
+  {
+    text: "Som dos Efeitos",
+    description: "Efeito dos sons de ouro, ataque e defesa",
+    command: ["som efeito"],
+    textCommand: "som efeito [valor]",
+    min: 0,
+    max: 100,
+    value: 50
   },
   {
     text: "Lista comandos",
@@ -60,28 +71,37 @@ const menuConfiguracoes = [
     command: ["fechar menu", "fechar configurações"],
   },
 ];
-
+  // {
+  //   text: "Falas de Efeitos",
+  //   textCommand: "ativar falas, ou desativar falas",
+  //   description:
+  //     "Ativado: fala o nome das cartas. Desativado: apenas o efeito sonoro será reproduzido",
+  //   command: ["ativar falas", "desativar falas"],
+  //   active: true
+  // },
 
 function App() {
   const deck = createDeck(statusGame);
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [page, setPage] = useState('Game')
+  const [page, setPage] = useState('init')
   const [isDead, setIsDead] = useState(false)
-
-  // UseEffect para reagir aos comandos de voz sem causar loop infinito
+  
   useEffect(() => {
     if (!openModal) {
       if (commandMatch(command, ["abrir menu", "abrir configurações"])) {
         setOpenModal(true)
       }
       if (commandMatch(command, ["iniciar"])) {
-        setPage('Game')
+        setPage('game')
       }
-      if (commandMatch(command, ["retorn"])) {
-        setPage('Init')
+      if (commandMatch(command, ["retorn", "volta"])) {
+        setPage('init')
         setIsDead(false)
+      }
+      if (commandMatch(command, ["regra"])) {
+        setPage('regra')
       }
       setCommand("")
     }
@@ -97,7 +117,7 @@ function App() {
 
   return (
     <div className="app">
-      {page === 'Init' && (
+      {page === 'init' && (
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -117,12 +137,13 @@ function App() {
               A Jornada do herói
             </h1>
             <p style={{ marginBottom: '6px'}} aria-label="Descrição do jogo">
-              Bem-vindo ao jogo! Use comandos de voz para interagir.
+              Bem-vindo ao jogo! Use comandos de voz para executar ações.
+              Imagine 4 blocos, um em cima do outro, os 2 blocos centrais são o area do botão para executarcomandos, é só segurar e falar, ao soltar o botão, se for um comando valido, sera executado.
             </p>
             <nav aria-label="Comandos disponíveis">
-              <p>Diga <strong aria-label="comando iniciar">"iniciar"</strong> para começar o jogo</p>
-              <p>Diga <strong aria-label="comando regras">"Regras"</strong> para entender como jogar</p>
-              <p>Diga <strong aria-label="comando abrir menu">"abrir menu"</strong> para acessar as configurações</p>
+              <p>Diga: <strong aria-label="diga iniciar">"Iniciar"</strong> para começar o jogo</p>
+              <p>Diga: <strong aria-label="diga regras">"Regras"</strong> para entender como jogar</p>
+              <p>Diga: <strong aria-label="diga abrir menu">"Abrir menu"</strong> para acessar as configurações</p>
             </nav>
           </header>
           <SpeechListener setCommand={setCommand} />
@@ -146,12 +167,15 @@ function App() {
         </p>
         <SpeechListener setCommand={setCommand} />
       </div>)}
-      {page === 'Game' && (
+      {page === 'game' && (
         <Game
           deck={deck}
           openModal={openModal}
           setIsDead={setIsDead}
         />)}
+      {page === 'regra' && (
+        <Rules setCommand={setCommand} />
+      )}
 
       {openModal && (
         <Modal
