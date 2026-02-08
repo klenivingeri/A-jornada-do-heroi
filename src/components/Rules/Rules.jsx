@@ -46,7 +46,6 @@ function Rules({ setCommand }) {
         </ul>
       </section>
 
-
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '15px', color: '#ffd700' }}>
           ⏱️ Sistema de Turnos

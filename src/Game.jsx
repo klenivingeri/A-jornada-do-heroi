@@ -729,7 +729,19 @@ function Game({ deck, openModal, setIsDead }) {
         }
       }
 
-
+      if (commandMatch(actiont, ["comand", 'command'])){
+        readSimpleCommand(`
+          você pode usar os seguintes comandos: 
+          comprar: adiciona na mão, 
+          guardar: adiciona na bolsa, 
+          descartar: joga do fora, 
+          pegar: pega da bolsa,
+          vender: ganha ouro, 
+          usar: aplica habilidade no Herói, arma ou escudo,
+          avançar: usa o Héroi pra atacar o inimigo,
+          atacar: usar a carta de ataque pra atacar,
+          defesa: usa carta de defesa pra defender do inimigo`)
+      }
       setCommand("") // Limpa o comando após executar
     }
   }, [command, openModal, dungeonCards, dungeonHero, selectCardID, setCommand])

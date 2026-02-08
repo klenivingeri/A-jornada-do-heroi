@@ -1,3 +1,17 @@
+// Configuração do deck
+const DECK_CONFIG = {
+  totalCards: 95,
+
+  distribution: {
+    enemy: 0.50,
+    attack: 0.15,
+    shield: 0.12, 
+    potion: 0.1,
+    gold: 0.1, 
+    skill: 0.5    
+  }
+};
+
 // Função para gerar array automático de valores sequenciais
 const generateRange = (start, end) => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -33,31 +47,22 @@ const getEnemyCards = (enemy = 0) => [
     description: "Dragão inimigo",
   },
   {
-    title: "Gosma",
-    value: generateRange(3 + enemy, 6 + enemy),
+    title: "Espantalho",
     song: 'dead',
     songVolume: 0.2,
+    value: generateRange(4 + enemy, 11 + enemy),
     type: "enemy",
-    description: "Gosma inimiga",
-    uri: "https://t4.ftcdn.net/jpg/05/94/89/73/360_F_594897314_F1ROeMCmV6zvRveKpXQk6Cl2vgiAfttn.jpg",
+    description: "Espantalho inimigo",
+    uri: "https://wallpapers.com/images/featured/imagens-de-espantalho-ki8gl3trbbd8saei.jpg",
   },
   {
-    title: "Esqueleto",
-    song: 'enemy_skeleton',
+    title: "Ogro",
+    song: 'dead',
     songVolume: 0.2,
-    value: generateRange(5 + enemy, 8 + enemy),
+    value: generateRange(4 + enemy, 11 + enemy),
     type: "enemy",
-    description: "Esqueleto inimigo",
-    uri: "https://wallpapers.com/images/hd/scary-monster-pictures-wxi8mvb6mdad3xu2.jpg",
-  },
-  {
-    title: "Vampiro",
-    song: 'enemy_skeleton',
-    songVolume: 0.2,
-    value: generateRange(2 + enemy, 7 + enemy),
-    type: "enemy",
-    description: "Vampiro inimigo",
-    uri: "https://files.meiobit.com/wp-content/uploads/2020/04/20200424dracula-de-bram-stoker-2.jpg",
+    description: "Ogro inimigo",
+    uri: "https://pbs.twimg.com/media/Cct-553UsAIFtWV.jpg",
   },
   {
     title: "Rato",
@@ -95,23 +100,32 @@ const getEnemyCards = (enemy = 0) => [
     description: "Sereia inimigo",
     uri: "https://i.pinimg.com/originals/fe/5a/25/fe5a251e96710fda949e17f95fd96a83.png",
   },
-  {
-    title: "Espantalho",
+    {
+    title: "Gosma",
+    value: generateRange(3 + enemy, 6 + enemy),
     song: 'dead',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 11 + enemy),
     type: "enemy",
-    description: "Espantalho inimigo",
-    uri: "https://wallpapers.com/images/featured/imagens-de-espantalho-ki8gl3trbbd8saei.jpg",
+    description: "Gosma inimiga",
+    uri: "https://t4.ftcdn.net/jpg/05/94/89/73/360_F_594897314_F1ROeMCmV6zvRveKpXQk6Cl2vgiAfttn.jpg",
   },
   {
-    title: "Ogro",
-    song: 'dead',
+    title: "Esqueleto",
+    song: 'enemy_skeleton',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 11 + enemy),
+    value: generateRange(5 + enemy, 8 + enemy),
     type: "enemy",
-    description: "Ogro inimigo",
-    uri: "https://pbs.twimg.com/media/Cct-553UsAIFtWV.jpg",
+    description: "Esqueleto inimigo",
+    uri: "https://wallpapers.com/images/hd/scary-monster-pictures-wxi8mvb6mdad3xu2.jpg",
+  },
+  {
+    title: "Vampiro",
+    song: 'enemy_skeleton',
+    songVolume: 0.2,
+    value: generateRange(2 + enemy, 7 + enemy),
+    type: "enemy",
+    description: "Vampiro inimigo",
+    uri: "https://files.meiobit.com/wp-content/uploads/2020/04/20200424dracula-de-bram-stoker-2.jpg",
   },
 ];
 
@@ -294,13 +308,23 @@ const createDeck = (playerStats = {}) => {
 
   const deck = [];
 
+  // Calcula quantidades baseadas na configuração
+  const quantities = {
+    enemy: Math.round(DECK_CONFIG.totalCards * DECK_CONFIG.distribution.enemy),
+    attack: Math.round(DECK_CONFIG.totalCards * DECK_CONFIG.distribution.attack),
+    shield: Math.round(DECK_CONFIG.totalCards * DECK_CONFIG.distribution.shield),
+    potion: Math.round(DECK_CONFIG.totalCards * DECK_CONFIG.distribution.potion),
+    gold: Math.round(DECK_CONFIG.totalCards * DECK_CONFIG.distribution.gold),
+    skill: Math.round(DECK_CONFIG.totalCards * DECK_CONFIG.distribution.skill),
+  };
+
   // Adiciona cartas garantindo que não haja duplicatas
-  deck.push(...getRandomCards(getEnemyCards(enemy), 60, deck)); // 15 inimigos
-  deck.push(...getRandomCards(getAttackCards(attack), 10, deck)); // 10 ataques
-  deck.push(...getRandomCards(getShieldCards(shield), 8, deck)); // 8 escudos
-  deck.push(...getRandomCards(getPotionCards(potion), 7, deck)); // 7 vidas/poções
-  deck.push(...getRandomCards(getGoldCards(gold), 8, deck)); // 8 ouros
-  deck.push(...getRandomCards(getSkillCards(skill), 2, deck)); // 2 habilidades
+  deck.push(...getRandomCards(getEnemyCards(enemy), quantities.enemy, deck));
+  deck.push(...getRandomCards(getAttackCards(attack), quantities.attack, deck));
+  deck.push(...getRandomCards(getShieldCards(shield), quantities.shield, deck));
+  deck.push(...getRandomCards(getPotionCards(potion), quantities.potion, deck));
+  deck.push(...getRandomCards(getGoldCards(gold), quantities.gold, deck));
+  deck.push(...getRandomCards(getSkillCards(skill), quantities.skill, deck));
 
   return deck.sort(() => Math.random() - 0.5); // Embaralha o deck
 };

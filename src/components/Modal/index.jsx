@@ -4,7 +4,7 @@ import { readCommandsList } from '../../util/speechReader';
 import './modal.css';
 import { extractCommandNumber } from '../../util/extractCommandNumber';
 
-export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
+export const Modal = ({ command, setCommand, onClose, config, setConfig, children }) => {
   const modalRef = useRef(null);
 
   if (!config || config.length === 0) return null;
@@ -22,10 +22,10 @@ export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
     const [commandText, commandNumber] = extractCommandNumber(command);
 
     // Comando: Som Ambiente [valor]
-    if (commandMatch(commandText, ["som ambiente"])) {
+    if (commandMatch(commandText, ["ambiente"])) {
       if (commandNumber !== null && commandNumber >= 0 && commandNumber <= 100) {
         const newConfig = [...config];
-        const index = newConfig.findIndex(item => item.command && item.command.includes("som ambiente"));
+        const index = newConfig.findIndex(item => item.command && item.command.includes("ambiente"));
         if (index !== -1) {
           newConfig[index] = { ...newConfig[index], value: commandNumber };
           setConfig(newConfig);
@@ -34,16 +34,28 @@ export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
     }
 
     // Comando: Som Efeito [valor]
-    if (commandMatch(commandText, ["som efeito"])) {
+    if (commandMatch(commandText, ["efeito"])) {
       if (commandNumber !== null && commandNumber >= 0 && commandNumber <= 100) {
         const newConfig = [...config];
-        const index = newConfig.findIndex(item => item.command && item.command.includes("som efeito"));
+        const index = newConfig.findIndex(item => item.command && item.command.includes("efeito"));
         if (index !== -1) {
           newConfig[index] = { ...newConfig[index], value: commandNumber };
           setConfig(newConfig);
         }
       }
     }
+
+        if (commandMatch(commandText, ["velocidade"])) {
+      if (commandNumber !== null && commandNumber >= 0 && commandNumber <= 100) {
+        const newConfig = [...config];
+        const index = newConfig.findIndex(item => item.command && item.command.includes("velocidade"));
+        if (index !== -1) {
+          newConfig[index] = { ...newConfig[index], value: commandNumber };
+          setConfig(newConfig);
+        }
+      }
+    }
+    
 
     // Comando: Ativar/Desativar Falas
     if (commandMatch(command, ["ativar falas", "desativar falas"])) {
@@ -164,7 +176,9 @@ export const Modal = ({ command, setCommand, onClose, config, setConfig }) => {
             )}
           </div>
         ))}
+        {children}
       </div>
+
     </div>
   );
 };

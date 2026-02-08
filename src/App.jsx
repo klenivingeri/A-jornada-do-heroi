@@ -26,35 +26,27 @@ const menuConfiguracoes = [
     text: "Som Ambiente",
     description: "Música que toca no fundo",
     textCommand: "som ambiente [valor]",
-    command: ["som ambiente"],
+    command: ["ambiente"],
     type: "ambient",
     min: 0,
     max: 100,
     value: 10
   },
   {
-    text: "Som dos Efeitos",
-    description: "Efeito dos sons de ouro, ataque e defesa",
-    command: ["som efeito"],
-    textCommand: "som efeito [valor]",
+    text: "Som efeito",
+    description: "Música que toca no fundo",
+    textCommand: "som ambiente [valor]",
+    command: ["efeito"],
+    type: "ambient",
     min: 0,
     max: 100,
-    value: 50
+    value: 10
   },
   {
     text: "Velocidade da Fala",
     description: " Velocidade da fala do narrador, que lê as ações do jogo",
     command: ["velocidade"],
     textCommand: "velocidade [valor]",
-    min: 0,
-    max: 100,
-    value: 50
-  },
-  {
-    text: "Som dos Efeitos",
-    description: "Efeito dos sons de ouro, ataque e defesa",
-    command: ["som efeito"],
-    textCommand: "som efeito [valor]",
     min: 0,
     max: 100,
     value: 50
@@ -90,14 +82,17 @@ function App() {
   
   useEffect(() => {
     if (!openModal) {
-      if (commandMatch(command, ["abrir menu", "abrir configurações"])) {
-        setOpenModal(true)
+      console.log('aaaaaaaaaa', command)
+      if (commandMatch(command, ["menu", "configurações"])) {
+        setPage('menu')
       }
       if (commandMatch(command, ["iniciar"])) {
         setPage('game')
       }
-      if (commandMatch(command, ["retorn", "volta"])) {
+      
+      if (commandMatch(command, ["retorn", "volta", "fechar"])) {
         setPage('init')
+        console.log('aaaaaaaaaa')
         setIsDead(false)
       }
       if (commandMatch(command, ["regra"])) {
@@ -155,8 +150,8 @@ function App() {
         color: 'red',
         padding: '40px',
         textAlign: 'center',
-        maxWidth: '600px',
-        margin: '0 auto'
+        height: '100%',
+
       }}>
         <h1 style={{ marginBottom: '30px', fontSize: '48px' }}>💀 Você Morreu!</h1>
         <p style={{ fontSize: '24px', marginBottom: '20px' }}>
@@ -165,7 +160,7 @@ function App() {
         <p style={{ fontSize: '18px', color: 'white' }}>
           Diga <strong>"retornar"</strong> para voltar à tela inicial
         </p>
-        <SpeechListener setCommand={setCommand} />
+        
       </div>)}
       {page === 'game' && (
         <Game
@@ -177,14 +172,16 @@ function App() {
         <Rules setCommand={setCommand} />
       )}
 
-      {openModal && (
+      {page === 'menu' &&  (
         <Modal
           command={command}
           setCommand={setCommand}
           onClose={setOpenModal}
           config={config}
           setConfig={setConfig}
-        />
+        >
+        <SpeechListener setCommand={setCommand} />
+        </Modal>
       )}
       <BackgroundMusic volume={config.find(item => item.type === "ambient")?.value || 10} />
     </div>

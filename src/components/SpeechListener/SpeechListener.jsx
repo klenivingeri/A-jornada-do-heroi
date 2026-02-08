@@ -24,14 +24,30 @@ export default function SpeechListener({ setCommand }) {
 
   // Função para desativar microfone
   const stopListening = () => {
-    if (!recognitionRef.current || !isActiveRef.current) return;
+    if (!recognitionRef.current) return;
 
+    console.log("🛑 Solicitando parada do microfone...");
+    
+    // Marca como inativo PRIMEIRO para evitar reiniciar
     isActiveRef.current = false;
+    
+    // Cancela qualquer timeout pendente IMEDIATAMENTE
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+      console.log("❌ Timeout cancelado");
+    }
+    
     try {
-      recognitionRef.current.stop();
-      console.log("🔇 Microfone DESLIGADO");
+      // Usa stop() para permitir processar resultados finais
+      if (isRunningRef.current) {
+        recognitionRef.current.stop();
+        console.log("🔇 Microfone DESLIGADO (stop chamado)");
+      }
     } catch (err) {
       console.error("Erro ao desligar:", err);
+      isRunningRef.current = false;
+      setIsListening(false);
     }
   };
 
@@ -89,40 +105,65 @@ export default function SpeechListener({ setCommand }) {
     };
 
     recognition.onend = () => {
+      console.log("📴 Recognition.onend - isActive:", isActiveRef.current, "isRunning:", isRunningRef.current);
+      
       isRunningRef.current = false;
       setIsListening(false);
       
-      // Só reinicia se ainda estiver com o botão pressionado
+      // VERIFICAÇÃO IMEDIATA: Só reinicia se botão ainda pressionado
       if (!isActiveRef.current) {
+        console.log("✅ Parada confirmada - botão solto");
         return;
       }
 
-      // Reinicia automaticamente enquanto segurar
+      // Cancela timeout anterior se existir
       if (restartTimeoutRef.current) {
         clearTimeout(restartTimeoutRef.current);
       }
 
+      // Pequeno delay para reiniciar (modo contínuo)
       restartTimeoutRef.current = setTimeout(() => {
-        if (!isActiveRef.current || isRunningRef.current) {
+        // VERIFICAÇÃO DUPLA antes de reiniciar
+        if (!isActiveRef.current) {
+          console.log("⛔ Cancelando - foi solto durante timeout");
           return;
         }
         
+        if (isRunningRef.current) {
+          console.log("⚠️ Já está rodando, não reinicia");
+          return;
+        }
+        
+        console.log("🔄 Reiniciando...");
         try {
           recognition.start();
         } catch (err) {
-          console.error("❌ Falha ao reconectar:", err);
+          console.error("❌ Erro ao reiniciar:", err);
           isRunningRef.current = false;
+          setIsListening(false);
         }
       }, 100);
     };
 
     recognition.onerror = (error) => {
-      // Ignora erros comuns em modo contínuo
-      if (error?.error === "no-speech" || error?.error === "aborted") {
+      console.log("⚠️ Erro no recognition:", error?.error);
+      
+      // Ignora erros comuns que são esperados
+      if (error?.error === "no-speech") {
+        console.log("🔇 Silencio detectado, aguardando...");
+        return; // Não para o listener
+      }
+      
+      if (error?.error === "aborted") {
+        console.log("🛑 Gravacao abortada (esperado ao parar)");
+        isRunningRef.current = false;
+        setIsListening(false);
         return;
       }
 
-      console.error("❌ Erro crítico no reconhecimento:", error);
+      // Erros críticos param tudo
+      console.error("❌ Erro CRÍTICO:", error);
+      isActiveRef.current = false;
       isRunningRef.current = false;
       setIsListening(false);
     };
@@ -152,23 +193,35 @@ export default function SpeechListener({ setCommand }) {
   }, [setCommand]);
 
   const handleTouchStart = (e) => {
-    console.log("Touch start detectado");
+    e.preventDefault();
+    console.log("👆 Touch START");
     startListening();
   };
 
   const handleTouchEnd = (e) => {
-    console.log("Touch end detectado");
+    e.preventDefault();
+    console.log("👆 Touch END");
     stopListening();
   };
 
   return (
     <div
-      onMouseDown={startListening}
-      onMouseUp={stopListening}
-      onMouseLeave={stopListening}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        startListening();
+      }}
+      onMouseUp={(e) => {
+        e.preventDefault();
+        stopListening();
+      }}
+      onMouseLeave={(e) => {
+        e.preventDefault();
+        stopListening(); // Garante parada ao sair da área
+      }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
+      onContextMenu={(e) => e.preventDefault()} // Previne menu de contexto
       style={{
         left: 0,
         right: 0,
