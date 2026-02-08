@@ -2,9 +2,5 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background: gray;
   padding: 10px 0;
-  background-image: url("https://img.freepik.com/vetores-gratis/uma-paisagem-de-caverna-escura_1308-16279.jpg");
-  background-size: cover;
-  background-position: center
 }

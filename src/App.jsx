@@ -67,7 +67,7 @@ function App() {
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [startGame, setStartGame] = useState(false)
+  const [page, setPage] = useState('Game')
   const [isDead, setIsDead] = useState(false)
 
   // UseEffect para reagir aos comandos de voz sem causar loop infinito
@@ -77,10 +77,10 @@ function App() {
         setOpenModal(true)
       }
       if (commandMatch(command, ["iniciar"])) {
-        setStartGame(true)
+        setPage('Game')
       }
       if (commandMatch(command, ["retorn"])) {
-        setStartGame(false)
+        setPage('Init')
         setIsDead(false)
       }
       setCommand("")
@@ -90,66 +90,78 @@ function App() {
   // UseEffect para ler mensagem quando o herói morre
   useEffect(() => {
     if (isDead) {
+      setPage('result')
       readSimpleCommand('Você morreu! Diga "retornar" para voltar à tela inicial')
     }
   }, [isDead])
 
-  
-
   return (
     <div className="app">
-      {!startGame ? (
-        <div style={{ 
-          color: 'white', 
-          padding: '40px', 
-          textAlign: 'center',
-          maxWidth: '600px',
-          margin: '0 auto'
+      {page === 'Init' && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          color: 'white',
+          height: '100%',
         }}>
-          <h1 style={{ marginBottom: '30px' }}>A Jornada</h1>
-          <p style={{ marginBottom: '20px', fontSize: '18px' }}>
-            Bem-vindo ao jogo! Use comandos de voz para interagir.
-          </p>
-          <p style={{ marginBottom: '10px' }}>Diga <strong>"iniciar"</strong> para começar o jogo</p>
-          <p>Diga <strong>"abrir menu"</strong> para acessar as configurações</p>
+          <header 
+            style={{height:'25%'}}
+            role="banner"
+            aria-label="Tela inicial do jogo A Jornada do Herói"
+          >
+            <h1  
+              style={{ marginBottom: '6px', fontSize: '18px' }}
+              id="game-title"
+            >
+              A Jornada do herói
+            </h1>
+            <p style={{ marginBottom: '6px'}} aria-label="Descrição do jogo">
+              Bem-vindo ao jogo! Use comandos de voz para interagir.
+            </p>
+            <nav aria-label="Comandos disponíveis">
+              <p>Diga <strong aria-label="comando iniciar">"iniciar"</strong> para começar o jogo</p>
+              <p>Diga <strong aria-label="comando regras">"Regras"</strong> para entender como jogar</p>
+              <p>Diga <strong aria-label="comando abrir menu">"abrir menu"</strong> para acessar as configurações</p>
+            </nav>
+          </header>
+          <SpeechListener setCommand={setCommand} />
+          <div style={{height:'25%'}}>Historico de partidas</div>
         </div>
-      ) : isDead ? (
-        <div style={{ 
-          color: 'red', 
-          padding: '40px', 
-          textAlign: 'center',
-          maxWidth: '600px',
-          margin: '0 auto'
-        }}>
-          <h1 style={{ marginBottom: '30px', fontSize: '48px' }}>💀 Você Morreu!</h1>
-          <p style={{ fontSize: '24px', marginBottom: '20px' }}>
-            Sua jornada chegou ao fim...
-          </p>
-          <p style={{ fontSize: '18px', color: 'white' }}>
-            Diga <strong>"retornar"</strong> para voltar à tela inicial
-          </p>
-        </div>
-      ) : (
-        <Game 
-          deck={deck} 
-          command={command} 
-          setCommand={setCommand} 
-          openModal={openModal} 
-          setIsDead={setIsDead} 
-        />
       )}
 
+      {page === 'result' && (<div style={{
+        color: 'red',
+        padding: '40px',
+        textAlign: 'center',
+        maxWidth: '600px',
+        margin: '0 auto'
+      }}>
+        <h1 style={{ marginBottom: '30px', fontSize: '48px' }}>💀 Você Morreu!</h1>
+        <p style={{ fontSize: '24px', marginBottom: '20px' }}>
+          Sua jornada chegou ao fim...
+        </p>
+        <p style={{ fontSize: '18px', color: 'white' }}>
+          Diga <strong>"retornar"</strong> para voltar à tela inicial
+        </p>
+        <SpeechListener setCommand={setCommand} />
+      </div>)}
+      {page === 'Game' && (
+        <Game
+          deck={deck}
+          openModal={openModal}
+          setIsDead={setIsDead}
+        />)}
+
       {openModal && (
-        <Modal 
-          command={command} 
-          setCommand={setCommand} 
-          onClose={setOpenModal} 
-          config={config} 
-          setConfig={setConfig} 
+        <Modal
+          command={command}
+          setCommand={setCommand}
+          onClose={setOpenModal}
+          config={config}
+          setConfig={setConfig}
         />
       )}
-      
-      <SpeechListener setCommand={setCommand} />
       <BackgroundMusic volume={config.find(item => item.type === "ambient")?.value || 10} />
     </div>
   )

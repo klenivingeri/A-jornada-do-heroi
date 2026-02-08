@@ -21,14 +21,6 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
       />
       <Card
         selectID={setSelectHeroID}
-        id={dungeonHero.hero?.id}
-        title={dungeonHero.hero?.title}
-        value={`${dungeonHero.hero?.value}/${dungeonHero.hero.maxValue}`}
-        uri={dungeonHero.hero?.uri}
-        description={dungeonHero.hero?.description}
-      />
-      <Card
-        selectID={setSelectHeroID}
         id={dungeonHero.slot[1]?.id}
         title={dungeonHero.slot[1]?.title ? dungeonHero.slot[1]?.title : "Mão esquerda vazia"}
         value={dungeonHero.slot[1]?.value}
@@ -37,12 +29,14 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         bg={dungeonHero.slot[1]?.title ? "" : "/assets/gloves.jpg"}
         isUse={dungeonHero.slot[1]?.isUse}
       />
-    </div>
-    <div aria-hidden="true" style={{
-      display: 'flex',
-      width: '100%',
-      paddingTop: '26px'
-    }}>
+      <Card
+        selectID={setSelectHeroID}
+        id={dungeonHero.hero?.id}
+        title={dungeonHero.hero?.title}
+        value={`${dungeonHero.hero?.value}/${dungeonHero.hero.maxValue}`}
+        uri={dungeonHero.hero?.uri}
+        description={dungeonHero.hero?.description}
+      />
       <Card
         selectID={setSelectHeroID}
         id={dungeonHero.bag[0]?.id}

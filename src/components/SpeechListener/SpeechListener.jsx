@@ -170,10 +170,10 @@ export default function SpeechListener({ setCommand }) {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
       style={{
-        bottom: "20px",
         left: 0,
         right: 0,
         width: "100%",
+        height: "100%",
         background: isListening ? "#4CAF50" : "#333",
         color: "white",
         padding: "20px 28px",
