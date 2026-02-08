@@ -36,6 +36,7 @@ const initHero = {
   bag: [],
   skill: [], // sempre que o heroi morrer ou estiver com carta de ataque no slot, ou carta de defesa no slot, deve ser verificao se existe algum efeito pra ser aplicado
   gold: 0,
+  isDead: false,
 }
 
 function Game({ deck, command, setCommand, openModal }) {
@@ -89,6 +90,42 @@ function Game({ deck, command, setCommand, openModal }) {
     }, fadeOutDuration);
   }
 
+  // Função para verificar e aplicar revive
+  const checkRevive = (nextHero) => {
+    // Procura por uma skill com efeito de revive e sequencial > 0
+    const reviveSkillIndex = nextHero.skill.findIndex(
+      skill => skill.effect === 'revive' && skill.sequencial > 0
+    )
+
+    if (reviveSkillIndex !== -1) {
+      const reviveSkill = nextHero.skill[reviveSkillIndex]
+      
+      // Revive o herói com o value da skill
+      nextHero.hero.value = reviveSkill.value
+      nextHero.isDead = false
+      
+      // Reduz o sequencial em 1
+      const updatedSkill = {
+        ...reviveSkill,
+        sequencial: reviveSkill.sequencial - 1,
+        isUse: true
+      }
+      
+      // Se sequencial chegou a 0, remove a skill
+      if (updatedSkill.sequencial <= 0) {
+        nextHero.skill = nextHero.skill.filter((_, index) => index !== reviveSkillIndex)
+      } else {
+        // Atualiza a skill com o novo sequencial
+        nextHero.skill[reviveSkillIndex] = updatedSkill
+      }
+      
+      // Toca o som da skill de revive
+      if (reviveSkill.song) {
+        playSound(reviveSkill.song, reviveSkill.songVolume || 0.5)
+      }
+    }
+  }
+
   useEffect(() => {
     const activeCards = dungeonCards.filter((card) => card.title)
     const countCard = activeCards.length
@@ -114,7 +151,7 @@ function Game({ deck, command, setCommand, openModal }) {
       const restComand = text.join(" ")
       let heroChanged = false
 
-      if (commandMatch(actiont, ["compra", "guarda", "descarta"])) {
+      if (commandMatch(actiont, ["compra", "guarda", "vende"])) {
 
         const nextHero = {
           ...dungeonHero,
@@ -148,7 +185,7 @@ function Game({ deck, command, setCommand, openModal }) {
               playSound('equip')
               return {}
             }
-            if (commandMatch(actiont, ["descarta"])) {
+            if (commandMatch(actiont, ["vende"])) {
               nextHero.gold = nextHero.gold + card.value
               heroChanged = true
               setSelectCardID(null)
@@ -178,9 +215,9 @@ function Game({ deck, command, setCommand, openModal }) {
               playSound('equip')
               
               // Se o card não possui auto, seleciona ele automaticamente
-              if (!card.auto) {
-                setSelectHeroID(card.id)
-              }
+              // if (!card.auto) {
+              //   setSelectHeroID(card.id)
+              // }
               
               return {}
             }
@@ -195,7 +232,7 @@ function Game({ deck, command, setCommand, openModal }) {
         setDungeonCards(restDungeonCards)
       }
 
-      if (commandMatch(actiont, ["pega", "descarta"])) {
+      if (commandMatch(actiont, ["pega", "vende"])) {
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -215,7 +252,7 @@ function Game({ deck, command, setCommand, openModal }) {
             : commandMatch(restComand, [infoCard])
 
           if (shouldProcessCard) {
-            if (commandMatch(actiont, ["descarta"])) {
+            if (commandMatch(actiont, ["vende"])) {
               nextHero.gold = nextHero.gold + card.value
               heroChanged = true
               setSelectHeroID(null)
@@ -242,9 +279,9 @@ function Game({ deck, command, setCommand, openModal }) {
               playSound('equip')
               
               // Se o card não possui auto, seleciona ele automaticamente
-              if (!card.auto) {
-                setSelectHeroID(card.id)
-              }
+              // if (!card.auto) {
+              //   setSelectHeroID(card.id)
+              // }
               
               return false // Remove da bag
             }
@@ -264,6 +301,13 @@ function Game({ deck, command, setCommand, openModal }) {
           bag: [...dungeonHero.bag],
           slot: [...dungeonHero.slot],
           skill: [...dungeonHero.skill]
+        }
+
+        // Verifica se há 2 itens no slot sem seleção específica
+        if (nextHero.slot.length === 2 && !selectHeroID && !restComand) {
+          readSimpleCommand('você possui itens iguais selecione uma mão')
+          setCommand("")
+          return
         }
 
         // Se selectCardID está definido e há apenas uma carta no slot, usa automaticamente
@@ -314,22 +358,28 @@ function Game({ deck, command, setCommand, openModal }) {
             : commandMatch(restComand, [infoCard])
 
           if (shouldProcessCard && card.type === 'enemy') {
-            // Verifica se o herói pode destruir o inimigo
-            if (nextHero.hero.value > card.value) {
-              // Diminui o valor do herói pelo valor do inimigo
-              nextHero.hero.value = nextHero.hero.value - card.value
-              // Converte o valor do enemy em gold
-              nextHero.gold = nextHero.gold + card.value
-              heroChanged = true
-              setSelectCardID(null)
-              
-              // Toca o som do enemy se existir
-              if (card.song) {
-                playSound(card.song, card.songVolume || 0.5)
-              }
-              
-              return {} // Destrói o card (retorna objeto vazio)
+            // Diminui o valor do herói pelo valor do inimigo
+            nextHero.hero.value = nextHero.hero.value - card.value
+            
+            // Verifica se o herói morreu
+            if (nextHero.hero.value <= 0) {
+              nextHero.isDead = true
+              // Verifica e aplica revive se disponível
+              checkRevive(nextHero)
             }
+            
+            // Converte o valor do enemy em gold
+            nextHero.gold = nextHero.gold + card.value
+            heroChanged = true
+            setSelectCardID(null)
+            
+            // Toca o som do enemy se existir
+            if (card.song) {
+              playSound(card.song, card.songVolume || 0.5)
+            }
+            playSound('punch', 0.5)
+            
+            return {} // Destrói o card (retorna objeto vazio)
           }
           return card
         })
@@ -353,6 +403,14 @@ function Game({ deck, command, setCommand, openModal }) {
 
         // Se selectCardID está definido, verifica se há apenas uma carta de ataque no slot
         const attackCards = nextHero.slot.filter(c => c.type === 'attack')
+        
+        // Verifica se há 2 cartas de ataque sem seleção específica
+        if (attackCards.length === 2 && !selectHeroID && !restComand) {
+          readSimpleCommand('você possui itens iguais selecione uma mauo')
+          setCommand("")
+          return
+        }
+        
         const shouldAutoAttack = selectCardID && attackCards.length === 1 && !selectHeroID && !restComand
 
         // Processa cards do slot do herói para usar carta de ataque
@@ -398,6 +456,7 @@ function Game({ deck, command, setCommand, openModal }) {
                 if (card.song) {
                   playSound(card.song, card.songVolume || 0.5)
                 }
+                playSound('attack', card.songVolume || 0.5)
                 return {} // Destrói o card do inimigo
               }
               
@@ -430,6 +489,14 @@ function Game({ deck, command, setCommand, openModal }) {
 
         // Se selectCardID está definido, verifica se há apenas uma carta de defesa no slot
         const defenseCards = nextHero.slot.filter(c => c.type === 'defense')
+        
+        // Verifica se há 2 cartas de defesa sem seleção específica
+        if (defenseCards.length === 2 && !selectHeroID && !restComand) {
+          readSimpleCommand('você possui itens iguais selecione uma mão')
+          setCommand("")
+          return
+        }
+        
         const shouldAutoDefend = selectCardID && defenseCards.length === 1 && !selectHeroID && !restComand
 
         // Processa cards do slot do herói para usar carta de defesa
@@ -474,6 +541,14 @@ function Game({ deck, command, setCommand, openModal }) {
                 // O escudo absorve o que pode e é destruído
                 const remainingDamage = enemyDamage - defenseValue
                 nextHero.hero.value = Math.max(0, nextHero.hero.value - remainingDamage)
+                
+                // Verifica se o herói morreu
+                if (nextHero.hero.value <= 0) {
+                  nextHero.isDead = true
+                  // Verifica e aplica revive se disponível
+                  checkRevive(nextHero)
+                }
+                
                 // Remove a carta de defesa do slot
                 nextHero.slot = nextHero.slot.filter((_, index) => index !== defenseCardIndex)
               } else {

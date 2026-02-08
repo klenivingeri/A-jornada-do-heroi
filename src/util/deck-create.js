@@ -161,6 +161,7 @@ const getSkillCards = (skill = 0) => {
       title: "Dobra Ataque",
       value: [2],
       type: "skill",
+      effect: "double_attack", // o efeito é aplicado apenas em cartas type:double_attack
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em um ataque deve reduzir 1 do sequencial
       description: "Dobra a carta de ataque atual do herói.",
       actions: {
@@ -169,12 +170,14 @@ const getSkillCards = (skill = 0) => {
         board: ["comprar", "guardar", "descartar"],
       },
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
-      effect: "attack", // o efeito é aplicado apenas em cartas type:ataque
       uri: "https://www.caminhosdaevolucao.org/wp-content/uploads/2018/10/magia1-945x628.jpg",
+      songVolume: 0.5,
+      song: 'revive',
     },
     {
       title: "Dobra Defesa",
       value: [2],
+      effect: "double_defense", // o efeito é aplicado apenas em cartas type:defense
       type: "skill",
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em uma defesa deve reduzir 1 do sequencial
       actions: {
@@ -184,22 +187,26 @@ const getSkillCards = (skill = 0) => {
       },
       description: "Dobra a carta de defesa atual do herói.",
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
-      effect: "defense", // o efeito é aplicado apenas em cartas type:defense
       uri: "https://www.caminhosdaevolucao.org/wp-content/uploads/2018/10/magia1-945x628.jpg",
+      songVolume: 0.5,
+      song: 'revive',
     },
     {
       title: "Reviver",
       value: [reviveValue],
+      effect: "revive", // o efeito é aplicado apenas quando o heroi morrer, ele é revivido com base no value da carta, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
       type: "skill",
        sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se heroi morrer deve reduzir 1 do sequencial
       actions: {
-        bag: ["pegar", "descartar"],
+        bag: ["pegar", "vende"],
         hand: ["usar"],
         board: ["comprar", "guardar", "descartar"],
       },
       description: `Quando o herói for morto ele é revivido com ${reviveValue} de vida.`,
       isUse: false, //controle de uso: muda o valor pra true se a carta ja foi usada nesse turno
       uri: "https://www.caminhosdaevolucao.org/wp-content/uploads/2018/10/magia1-945x628.jpg",
+      songVolume: 0.5,
+      song: 'revive',
     },
   ];
 };
