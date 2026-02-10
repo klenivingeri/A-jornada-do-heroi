@@ -1,14 +1,13 @@
 // Configuração do deck
 const DECK_CONFIG = {
-  totalCards: 95,
-
+  totalCards: 54,
   distribution: {
-    enemy: 0.50,
-    attack: 0.15,
-    shield: 0.12, 
-    potion: 0.1,
-    gold: 0.1, 
-    skill: 0.5    
+    enemy: 0.37,   // 20 inimigos
+    attack: 0.22,  // 12 ataques
+    shield: 0.20,  // 11 defesas
+    potion: 0.13,  // 7 poções
+    gold: 0.05,    // 3 ouros
+    skill: 0.03    // 2 skills
   }
 };
 
@@ -37,102 +36,129 @@ const generateId = () => {
 
 // Funções que geram arrays de cartas baseado nos status
 const getEnemyCards = (enemy = 0) => [
-  {
-    title: "Dragão",
-    song: 'enemy_dragon',
-    songVolume: 0.2,
-    value: generateRange(7 + enemy, 10 + enemy),
-    type: "enemy",
-    uri: "https://wallpapers.com/images/featured/imagens-do-dragao-3d-7fnp82l6eor2rsxo.jpg",
-    description: "Dragão inimigo",
-  },
-  {
-    title: "Espantalho",
-    song: 'dead',
-    songVolume: 0.2,
-    value: generateRange(4 + enemy, 9 + enemy),
-    type: "enemy",
-    description: "Espantalho inimigo",
-    uri: "https://wallpapers.com/images/featured/imagens-de-espantalho-ki8gl3trbbd8saei.jpg",
-  },
-  {
-    title: "Ogro",
-    song: 'dead',
-    songVolume: 0.2,
-    value: generateRange(4 + enemy, 8 + enemy),
-    type: "enemy",
-    description: "Ogro inimigo",
-    uri: "https://pbs.twimg.com/media/Cct-553UsAIFtWV.jpg",
-  },
+  // === TIER COMUM (50% - ~30-35 dano total) === //
   {
     title: "Rato",
     song: 'enemy_mouse',
     songVolume: 0.5,
     value: generateRange(2 + enemy, 4 + enemy),
     type: "enemy",
-    description: "Rato inimigo",
+    rarity: "comum",
+    weight: 5, // Maior peso = mais frequente
+    description: "Inimigo fraco e comum",
     uri: "https://r2.starryai.com/results/1051467097/5bfb197a-c221-4519-b718-3a6e61892e8b.webp",
   },
-    {
-    title: "Fantasma",
-    song: 'dead',
-    songVolume: 0.2,
-    value: generateRange(4 + enemy, 5 + enemy),
-    type: "enemy",
-    description: "Fantasma inimigo",
-    uri: "https://img.freepik.com/fotos-premium/um-fantasma-com-um-veu-branco-esta-na-frente-de-um-fundo-preto_899894-44885.jpg",
-  },
-      {
-    title: "Zumbi",
-    song: 'dead',
-    songVolume: 0.2,
-    value: generateRange(4 + enemy, 5 + enemy),
-    type: "enemy",
-    description: "Zumbi inimigo",
-    uri: "https://img.freepik.com/fotos-premium/um-grupo-de-zumbis-um-retrato-de-terror-do-grupo-de-mortos-vivos-na-cidade_734790-1244.jpg",
-  },
-      {
-    title: "Sereia",
-    song: 'dead',
-    songVolume: 0.2,
-    value: generateRange(4 + enemy, 5 + enemy),
-    type: "enemy",
-    description: "Sereia inimigo",
-    uri: "https://i.pinimg.com/originals/fe/5a/25/fe5a251e96710fda949e17f95fd96a83.png",
-  },
-    {
+  {
     title: "Gosma",
     value: generateRange(2 + enemy, 4 + enemy),
     song: 'dead',
     songVolume: 0.2,
     type: "enemy",
-    description: "Gosma inimiga",
+    rarity: "comum",
+    weight: 5,
+    description: "Inimigo fraco e comum",
     uri: "https://t4.ftcdn.net/jpg/05/94/89/73/360_F_594897314_F1ROeMCmV6zvRveKpXQk6Cl2vgiAfttn.jpg",
   },
+  
+  // === TIER MÉDIO (35% - ~30-40 dano total) === //
   {
-    title: "Esqueleto",
-    song: 'enemy_skeleton',
+    title: "Fantasma",
+    song: 'dead',
     songVolume: 0.2,
-    value: generateRange(5 + enemy, 7 + enemy),
+    value: generateRange(4 + enemy, 6 + enemy),
     type: "enemy",
-    description: "Esqueleto inimigo",
-    uri: "https://wallpapers.com/images/hd/scary-monster-pictures-wxi8mvb6mdad3xu2.jpg",
+    rarity: "médio",
+    weight: 3,
+    description: "Inimigo de dificuldade média",
+    uri: "https://img.freepik.com/fotos-premium/um-fantasma-com-um-veu-branco-esta-na-frente-de-um-fundo-preto_899894-44885.jpg",
+  },
+  {
+    title: "Zumbi",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(4 + enemy, 6 + enemy),
+    type: "enemy",
+    rarity: "médio",
+    weight: 3,
+    description: "Inimigo de dificuldade média",
+    uri: "https://img.freepik.com/fotos-premium/um-grupo-de-zumbis-um-retrato-de-terror-do-grupo-de-mortos-vivos-na-cidade_734790-1244.jpg",
+  },
+  {
+    title: "Sereia",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(4 + enemy, 6 + enemy),
+    type: "enemy",
+    rarity: "médio",
+    weight: 3,
+    description: "Inimigo de dificuldade média",
+    uri: "https://i.pinimg.com/originals/fe/5a/25/fe5a251e96710fda949e17f95fd96a83.png",
   },
   {
     title: "Vampiro",
     song: 'enemy_skeleton',
     songVolume: 0.2,
-    value: generateRange(2 + enemy, 6 + enemy),
+    value: generateRange(4 + enemy, 6 + enemy),
     type: "enemy",
-    description: "Vampiro inimigo",
+    rarity: "médio",
+    weight: 3,
+    description: "Inimigo de dificuldade média",
     uri: "https://files.meiobit.com/wp-content/uploads/2020/04/20200424dracula-de-bram-stoker-2.jpg",
+  },
+  
+  // === TIER FORTE (10% - ~12-16 dano total) === //
+  {
+    title: "Esqueleto",
+    song: 'enemy_skeleton',
+    songVolume: 0.2,
+    value: generateRange(6 + enemy, 8 + enemy),
+    type: "enemy",
+    rarity: "forte",
+    weight: 1.5,
+    description: "Inimigo forte e perigoso",
+    uri: "https://wallpapers.com/images/hd/scary-monster-pictures-wxi8mvb6mdad3xu2.jpg",
+  },
+  {
+    title: "Ogro",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(6 + enemy, 8 + enemy),
+    type: "enemy",
+    rarity: "forte",
+    weight: 1.5,
+    description: "Inimigo forte e perigoso",
+    uri: "https://pbs.twimg.com/media/Cct-553UsAIFtWV.jpg",
+  },
+  {
+    title: "Espantalho",
+    song: 'dead',
+    songVolume: 0.2,
+    value: generateRange(6 + enemy, 8 + enemy),
+    type: "enemy",
+    rarity: "forte",
+    weight: 1.5,
+    description: "Inimigo forte e perigoso",
+    uri: "https://wallpapers.com/images/featured/imagens-de-espantalho-ki8gl3trbbd8saei.jpg",
+  },
+  
+  // === TIER BOSS (5% - ~8-10 dano total) === //
+  {
+    title: "Dragão",
+    song: 'enemy_dragon',
+    songVolume: 0.2,
+    value: generateRange(8 + enemy, 10 + enemy),
+    type: "enemy",
+    rarity: "boss",
+    weight: 0.5, // Muito raro
+    description: "Boss extremamente perigoso!",
+    uri: "https://wallpapers.com/images/featured/imagens-do-dragao-3d-7fnp82l6eor2rsxo.jpg",
   },
 ];
 
 const getShieldCards = (shield = 0) => [
   {
     title: "Defesa",
-    value: generateRange(2 + shield, 9 + shield),
+    value: generateRange(3 + shield, 9 + shield),
     type: "defense",
     isBuff: false, // indica que a carta é um buff de defesa, ou seja, ela pode ser usada para aumentar a defesa do herói, e o valor dela deve ser somado a defesa atual do herói, e quando a carta for destruida ou descartada o valor dela deve ser subtraido da defesa atual do herói
     actions: {
@@ -149,7 +175,7 @@ const getShieldCards = (shield = 0) => [
 const getAttackCards = (attack = 0) => [
   {
     title: "Ataque",
-    value: generateRange(2 + attack, 9 + attack),
+    value: generateRange(3 + attack, 9 + attack),
     isBuff: false,
     type: "attack",
     actions: {
@@ -166,7 +192,7 @@ const getAttackCards = (attack = 0) => [
 const getPotionCards = (potion = 0) => [
   {
     title: "Poção",
-    value: generateRange(3 + potion, 9 + potion),
+    value: generateRange(4 + potion, 8 + potion),
     type: "potion",
     actions: {
       bag: ["pegar", "descartar"],
@@ -187,7 +213,7 @@ const getPotionCards = (potion = 0) => [
 const getGoldCards = (gold = 0) => [
   {
     title: "Ouro",
-    value: generateRange(2 + gold, 11 + gold),
+    value: generateRange(3 + gold, 9 + gold),
     type: "gold",
     actions: {
       board: ["comprar", "descartar", "guardar"],
@@ -270,26 +296,27 @@ const getSkillCards = (skill = 0) => {
 const getRandomCards = (cardArray, quantity, existingCards = []) => {
   const cards = [];
 
+  // Calcula o peso total para seleção ponderada
+  const totalWeight = cardArray.reduce((sum, card) => sum + (card.weight || 1), 0);
+
   for (let i = 0; i < quantity; i++) {
-    const randomCard = cardArray[Math.floor(Math.random() * cardArray.length)];
+    // Seleção ponderada baseada no weight
+    let randomNum = Math.random() * totalWeight;
+    let selectedCard = cardArray[0];
+    
+    for (const card of cardArray) {
+      randomNum -= (card.weight || 1);
+      if (randomNum <= 0) {
+        selectedCard = card;
+        break;
+      }
+    }
 
-    // Filtra os valores que já existem no deck para este título
-    const usedValues = [...existingCards, ...cards]
-      .filter((card) => card.title === randomCard.title)
-      .map((card) => card.value);
-
-    const availableValues = randomCard.value.filter(
-      (v) => !usedValues.includes(v),
-    );
-
-    // Se não houver valores disponíveis, pula esta iteração
-    if (availableValues.length === 0) continue;
-
-    const randomValue =
-      availableValues[Math.floor(Math.random() * availableValues.length)];
+    // Seleciona um valor aleatório do range
+    const randomValue = selectedCard.value[Math.floor(Math.random() * selectedCard.value.length)];
 
     cards.push({
-      ...randomCard,
+      ...selectedCard,
       value: randomValue,
       id: generateId(),
     });
@@ -329,7 +356,17 @@ const createDeck = (playerStats = {}) => {
   deck.push(...getRandomCards(getGoldCards(gold), quantities.gold, deck));
   deck.push(...getRandomCards(getSkillCards(skill), quantities.skill, deck));
 
-  return deck.sort(() => Math.random() - 0.5); // Embaralha o deck
+  // Embaralha o deck
+  const shuffledDeck = deck.sort(() => Math.random() - 0.5);
+  
+  // Move o Dragão para o final (boss final)
+  const dragonIndex = shuffledDeck.findIndex(card => card.title === "Dragão");
+  if (dragonIndex !== -1) {
+    const dragonCard = shuffledDeck.splice(dragonIndex, 1)[0];
+    shuffledDeck.push(dragonCard);
+  }
+  
+  return shuffledDeck;
 };
 
 export default createDeck;

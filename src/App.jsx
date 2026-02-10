@@ -79,6 +79,7 @@ function App() {
   const [openModal, setOpenModal] = useState(false)
   const [page, setPage] = useState('game')
   const [isDead, setIsDead] = useState(false)
+  const [isWinner, setIsWinner] = useState(false)
   
   useEffect(() => {
     if (!openModal) {
@@ -93,6 +94,7 @@ function App() {
       if (commandMatch(command, ["retorn", "volta", "fechar"])) {
         setPage('init')
         setIsDead(false)
+        setIsWinner(false)
       }
       if (commandMatch(command, ["regra"])) {
         setPage('regra')
@@ -104,10 +106,18 @@ function App() {
   // UseEffect para ler mensagem quando o herói morre
   useEffect(() => {
     if (isDead) {
-      setPage('result')
+      setPage('gameOver')
       readSimpleCommand('Você morreu! Diga "retornar" para voltar à tela inicial')
     }
   }, [isDead])
+
+  // UseEffect para ler mensagem quando o herói vence
+  useEffect(() => {
+    if (isWinner) {
+      setPage('victory')
+      readSimpleCommand('Você venceu! Parabéns pela sua jornada! Diga "retornar" para voltar à tela inicial')
+    }
+  }, [isWinner])
 
   return (
     <div className="app">
@@ -145,7 +155,7 @@ function App() {
         </div>
       )}
 
-      {page === 'result' && (<div style={{
+      {page === 'gameOver' && (<div style={{
         color: 'red',
         padding: '40px',
         textAlign: 'center',
@@ -161,10 +171,29 @@ function App() {
         </p>
         
       </div>)}
+
+      {page === 'victory' && (<div style={{
+        color: 'gold',
+        padding: '40px',
+        textAlign: 'center',
+        height: '100%',
+
+      }}>
+        <h1 style={{ marginBottom: '30px', fontSize: '48px' }}>🏆 Você Venceu!</h1>
+        <p style={{ fontSize: '24px', marginBottom: '20px' }}>
+          Parabéns! Você completou a jornada com sucesso!
+        </p>
+        <p style={{ fontSize: '18px', color: 'white' }}>
+          Diga <strong>"retornar"</strong> para voltar à tela inicial
+        </p>
+        
+      </div>)}
+
       {page === 'game' && (
         <Game
           deck={deck}
           setIsDead={setIsDead}
+          setIsWinner={setIsWinner}
         />)}
       {page === 'regra' && (
         <Rules setCommand={setCommand} />

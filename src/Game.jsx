@@ -40,7 +40,7 @@ const initHero = {
   gold: 0,
 }
 
-function Game({ deck, openModal, setIsDead }) {
+function Game({ deck, openModal, setIsDead, setIsWinner }) {
   const [deckState, setDeckState] = useState(() => deck);
   const [dungeonCards, setDungeonCards] = useState(() => [initItem])
   const [dungeonHero, setDungeonHero] = useState(() => initHero)
@@ -53,12 +53,13 @@ function Game({ deck, openModal, setIsDead }) {
   // Referência para armazenar o valor anterior do herói
   const prevHeroValueRef = useRef(dungeonHero.hero.value)
 
+  // Referência para controlar timeouts/intervals ativos do playSound
+  const audioTimersRef = useRef(new Set())
+
   // Função para tocar sons de efeito
   const playSound = (soundFile, volume = 0.5, useFadeOut = true) => {
-    console.log('Tocando som:', soundFile, 'volume:', volume);
     // Se o arquivo não tem extensão, adiciona .mp3 por padrão
     const fileName = soundFile.includes('.') ? soundFile : `${soundFile}.mp3`;
-    console.log('Arquivo completo:', `/assets/effect/${fileName}`);
     const audio = new Audio(`/assets/effect/${fileName}`);
 
     // Define o volume inicial (respeitando o valor passado)
@@ -72,7 +73,7 @@ function Game({ deck, openModal, setIsDead }) {
     }
 
     // Fade out: diminui o volume gradualmente até 0
-    const fadeOutDuration = 1000; // duração máxima de 0.8 segundos
+    const fadeOutDuration = 1000; // duração máxima de 1 segundo
     const fadeOutInterval = 50; // atualiza a cada 50ms
     const steps = fadeOutDuration / fadeOutInterval;
     const volumeDecrement = volume / steps;
@@ -84,17 +85,26 @@ function Game({ deck, openModal, setIsDead }) {
         audio.pause();
         audio.currentTime = 0;
         clearInterval(fadeOut);
+        audioTimersRef.current.delete(fadeOut);
       } else {
         audio.volume = currentVolume;
       }
     }, fadeOutInterval);
 
-    // Garante que o áudio seja pausado após 0.8 segundos
-    setTimeout(() => {
+    // Armazena o interval para cleanup
+    audioTimersRef.current.add(fadeOut);
+
+    // Garante que o áudio seja pausado após a duração do fade
+    const timeout = setTimeout(() => {
       audio.pause();
       audio.currentTime = 0;
       clearInterval(fadeOut);
+      audioTimersRef.current.delete(fadeOut);
+      audioTimersRef.current.delete(timeout);
     }, fadeOutDuration);
+
+    // Armazena o timeout para cleanup
+    audioTimersRef.current.add(timeout);
   }
 
   // Função para verificar e aplicar revive
@@ -144,55 +154,34 @@ function Game({ deck, openModal, setIsDead }) {
       let newCards = deckState.slice(0, 3)
       let cardsToRemove = 3
       
-      // Verifica se a carta que sobrou é enemy
+      // Verifica se a carta que sobrou existe e pega seu tipo
       const remainingCard = activeCards[0]
-      const isRemainingEnemy = remainingCard && remainingCard.type === 'enemy'
+      const remainingType = remainingCard ? remainingCard.type : null
       
-      // Regra 1: Se a carta que sobrou é enemy, verifica se todas as novas também são (evitar 4 enemies)
-      if (isRemainingEnemy && newCards.length === 3) {
-        const allNewAreEnemies = newCards.every(card => card.type === 'enemy')
+      // Regra: Evitar 4 cartas do mesmo tipo na mesa (se possível)
+      if (remainingType && newCards.length === 3) {
+        // Verifica se todas as 3 novas cartas são do mesmo tipo que a que sobrou
+        const allNewSameType = newCards.every(card => card.type === remainingType)
         
-        if (allNewAreEnemies) {
-          // Procura uma carta não-enemy em todo o deck restante
-          const nonEnemyIndex = deckState.findIndex(card => card.type !== 'enemy')
+        if (allNewSameType) {
+          // Todas as 4 cartas seriam do mesmo tipo
+          // Verifica se existe pelo menos uma carta de tipo diferente no deck
+          const differentTypeIndex = deckState.findIndex(card => card.type !== remainingType)
           
-          if (nonEnemyIndex !== -1 && nonEnemyIndex > 0) {
-            // Se encontrou uma não-enemy, reorganiza as cartas
-            if (nonEnemyIndex <= 2) {
-              // Carta não-enemy está nas 3 primeiras, usa ela
+          if (differentTypeIndex !== -1) {
+            // Existe carta de tipo diferente disponível, deve usá-la
+            if (differentTypeIndex <= 2) {
+              // A carta diferente está nas 3 primeiras, só pega normalmente
               newCards = deckState.slice(0, 3)
               cardsToRemove = 3
             } else {
-              // Carta não-enemy está mais adiante, substitui a última das 3
-              newCards = [...deckState.slice(0, 2), deckState[nonEnemyIndex]]
-              cardsToRemove = nonEnemyIndex + 1
+              // A carta diferente está mais adiante, substitui a última das 3
+              newCards = [...deckState.slice(0, 2), deckState[differentTypeIndex]]
+              cardsToRemove = differentTypeIndex + 1
             }
-          } else if (nonEnemyIndex === -1) {
-            // Não há cartas não-enemy no deck, pega apenas 2 cartas para evitar 4 enemies
-            newCards = deckState.slice(0, 2)
-            cardsToRemove = 2
           }
-        }
-      }
-      
-      // Regra 2: Garantir que sempre exista pelo menos 1 enemy na dungeon
-      const hasEnemyInRemaining = remainingCard && remainingCard.type === 'enemy'
-      const hasEnemyInNew = newCards.some(card => card.type === 'enemy')
-      
-      if (!hasEnemyInRemaining && !hasEnemyInNew) {
-        // Não há enemy na dungeon, procura um no deck
-        const enemyIndex = deckState.findIndex(card => card.type === 'enemy')
-        
-        if (enemyIndex !== -1) {
-          if (enemyIndex <= 2) {
-            // Enemy está nas 3 primeiras, só pega normalmente
-            newCards = deckState.slice(0, 3)
-            cardsToRemove = 3
-          } else {
-            // Enemy está mais adiante, substitui a última das 3
-            newCards = [...deckState.slice(0, 2), deckState[enemyIndex]]
-            cardsToRemove = enemyIndex + 1
-          }
+          // Se differentTypeIndex === -1, não há cartas de outro tipo no deck
+          // Nesse caso, permite pegar as 3 cartas mesmo sendo todas do mesmo tipo
         }
       }
       
@@ -250,12 +239,18 @@ function Game({ deck, openModal, setIsDead }) {
       }
     }
 
-    // Cleanup: para o áudio quando o componente desmontar
+    // Cleanup: para o áudio e limpa timers quando o componente desmontar
     return () => {
       if (heartbeatAudioRef.current) {
         heartbeatAudioRef.current.pause()
         heartbeatAudioRef.current.currentTime = 0
       }
+      // Limpa todos os timeouts/intervals ativos
+      audioTimersRef.current.forEach(timer => {
+        clearInterval(timer)
+        clearTimeout(timer)
+      })
+      audioTimersRef.current.clear()
     }
   }, [dungeonHero.hero.value])
 
@@ -273,12 +268,30 @@ function Game({ deck, openModal, setIsDead }) {
     prevHeroValueRef.current = currentValue
   }, [dungeonHero.hero.value])
 
+  // Efeito para verificar condição de vitória
   useEffect(() => {
+    // Verifica se não há inimigos no deck
+    const hasEnemiesInDeck = deckState.some(card => card.type === 'enemy')
+    
+    // Verifica se não há inimigos na mesa (dungeonCards com título)
+    const hasEnemiesInDungeon = dungeonCards.some(card => card.title && card.type === 'enemy')
+    
+    // Se não há inimigos em nenhum lugar, o jogador venceu
+    if (!hasEnemiesInDeck && !hasEnemiesInDungeon && deckState.length === 0) {
+      setIsWinner(true)
+    }
+  }, [dungeonCards, deckState, setIsWinner])
+
+  useEffect(() => {
+      if (!command.trim()) return // Se não há comando, retorna
+
       const [actiont, ...text] = command.split(" ")
       const restComand = text.join(" ")
       let heroChanged = false
+      let commandProcessed = false // Flag para rastrear se o comando foi processado
 
       if (commandMatch(actiont, ["compra", "guarda", "descar", "discar"])) {
+        commandProcessed = true
 
         const nextHero = {
           ...dungeonHero,
@@ -359,8 +372,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["pega", "vende"])) {
-        console.log('Comando pega/vende - Bag length:', dungeonHero.bag.length, 'Bag:', dungeonHero.bag)
-        
+        commandProcessed = true
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -446,6 +458,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["usa"])) {
+        commandProcessed = true
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -508,8 +521,6 @@ function Game({ deck, openModal, setIsDead }) {
                   playSound('anvil-hit', 0.5)
                 }
                 break
-              } else {
-                readSimpleCommand('você não possui items para aplicar a habilidade')
               }
             }
 
@@ -533,6 +544,11 @@ function Game({ deck, openModal, setIsDead }) {
               }
             }
 
+            // Se não conseguiu aplicar em nenhum lugar, avisa o usuário
+            if (!applied) {
+              readSimpleCommand('você não possui items para aplicar a habilidade')
+            }
+
             // Remove a carta usada do slot
             nextHero.slot = nextHero.slot.filter((_, index) => index !== cardToUseIndex)
             setSelectHeroID(null)
@@ -552,6 +568,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["avanca"])) {
+        commandProcessed = true
         // Verifica se o card selecionado é um inimigo
         if (selectCardID) {
           const selectedCard = dungeonCards.find(card => card.id === selectCardID)
@@ -619,6 +636,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["ataque", "atacar"])) {
+        commandProcessed = true
         // Verifica se o card selecionado é um inimigo
         if (selectCardID) {
           const selectedCard = dungeonCards.find(card => card.id === selectCardID)
@@ -650,6 +668,14 @@ function Game({ deck, openModal, setIsDead }) {
         }
 
         const shouldAutoAttack = selectCardID && attackCards.length === 1 && !selectHeroID && !restComand
+
+        // Verifica se há carta de ataque no slot
+        const hasAttackCard = nextHero.slot.some(card => card.type === 'attack')
+        if (!hasAttackCard) {
+          readSimpleCommand('você não possui carta de ataque nas mãos')
+          setCommand("")
+          return
+        }
 
         // Processa cards do slot do herói para usar carta de ataque
         let attackCard = null
@@ -715,6 +741,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["defesa", "defender", "defende", "escudo"])) {
+        commandProcessed = true
         // Verifica se o card selecionado é um inimigo
         if (selectCardID) {
           const selectedCard = dungeonCards.find(card => card.id === selectCardID)
@@ -746,6 +773,14 @@ function Game({ deck, openModal, setIsDead }) {
         }
 
         const shouldAutoDefend = selectCardID && defenseCards.length === 1 && !selectHeroID && !restComand
+
+        // Verifica se há carta de defesa no slot
+        const hasDefenseCard = nextHero.slot.some(card => card.type === 'defense')
+        if (!hasDefenseCard) {
+          readSimpleCommand('você não possui carta de defesa nas mãos')
+          setCommand("")
+          return
+        }
 
         // Processa cards do slot do herói para usar carta de defesa
         let defenseCard = null
@@ -843,6 +878,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["ajuda"])){
+        commandProcessed = true
         readSimpleCommand(`
           você pode usar os seguintes comandos: 
           comprar: adiciona na mão, 
@@ -857,6 +893,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
       
       if(commandMatch(actiont, ["mesa", "meza"])){
+        commandProcessed = true
         let infoCard =  ''
         dungeonCards.forEach((card) => {
           infoCard = infoCard+ `${normalizeText(card.title)} ${card.value}. `
@@ -866,6 +903,7 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if(commandMatch(actiont, ["heroi", "eroi"])){
+        commandProcessed = true
         let slotInfo = ''
 
           if(dungeonHero.slot.length){
@@ -893,6 +931,12 @@ function Game({ deck, openModal, setIsDead }) {
         
         readSimpleCommand(`${slotInfo} ${heroInfo} ${skillInfo} ${bagInfo}`)
       }
+
+      // Verifica se o comando foi processado
+      if (!commandProcessed) {
+        readSimpleCommand('Comando inválido')
+      }
+
       setCommand("") // Limpa o comando após executar
 
       
