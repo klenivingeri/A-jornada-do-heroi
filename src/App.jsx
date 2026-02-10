@@ -77,12 +77,12 @@ function App() {
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [page, setPage] = useState('init')
+  const [page, setPage] = useState('game')
   const [isDead, setIsDead] = useState(false)
   
   useEffect(() => {
     if (!openModal) {
-      console.log('aaaaaaaaaa', command)
+
       if (commandMatch(command, ["menu", "configurações"])) {
         setPage('menu')
       }
@@ -92,7 +92,6 @@ function App() {
       
       if (commandMatch(command, ["retorn", "volta", "fechar"])) {
         setPage('init')
-        console.log('aaaaaaaaaa')
         setIsDead(false)
       }
       if (commandMatch(command, ["regra"])) {
@@ -165,7 +164,6 @@ function App() {
       {page === 'game' && (
         <Game
           deck={deck}
-          openModal={openModal}
           setIsDead={setIsDead}
         />)}
       {page === 'regra' && (

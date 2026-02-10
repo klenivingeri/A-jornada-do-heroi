@@ -41,7 +41,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Dragão",
     song: 'enemy_dragon',
     songVolume: 0.2,
-    value: generateRange(7 + enemy, 15 + enemy),
+    value: generateRange(7 + enemy, 10 + enemy),
     type: "enemy",
     uri: "https://wallpapers.com/images/featured/imagens-do-dragao-3d-7fnp82l6eor2rsxo.jpg",
     description: "Dragão inimigo",
@@ -50,7 +50,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Espantalho",
     song: 'dead',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 11 + enemy),
+    value: generateRange(4 + enemy, 9 + enemy),
     type: "enemy",
     description: "Espantalho inimigo",
     uri: "https://wallpapers.com/images/featured/imagens-de-espantalho-ki8gl3trbbd8saei.jpg",
@@ -59,7 +59,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Ogro",
     song: 'dead',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 11 + enemy),
+    value: generateRange(4 + enemy, 8 + enemy),
     type: "enemy",
     description: "Ogro inimigo",
     uri: "https://pbs.twimg.com/media/Cct-553UsAIFtWV.jpg",
@@ -68,7 +68,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Rato",
     song: 'enemy_mouse',
     songVolume: 0.5,
-    value: generateRange(2 + enemy, 7 + enemy),
+    value: generateRange(2 + enemy, 4 + enemy),
     type: "enemy",
     description: "Rato inimigo",
     uri: "https://r2.starryai.com/results/1051467097/5bfb197a-c221-4519-b718-3a6e61892e8b.webp",
@@ -77,7 +77,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Fantasma",
     song: 'dead',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 10 + enemy),
+    value: generateRange(4 + enemy, 5 + enemy),
     type: "enemy",
     description: "Fantasma inimigo",
     uri: "https://img.freepik.com/fotos-premium/um-fantasma-com-um-veu-branco-esta-na-frente-de-um-fundo-preto_899894-44885.jpg",
@@ -86,7 +86,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Zumbi",
     song: 'dead',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 10 + enemy),
+    value: generateRange(4 + enemy, 5 + enemy),
     type: "enemy",
     description: "Zumbi inimigo",
     uri: "https://img.freepik.com/fotos-premium/um-grupo-de-zumbis-um-retrato-de-terror-do-grupo-de-mortos-vivos-na-cidade_734790-1244.jpg",
@@ -95,14 +95,14 @@ const getEnemyCards = (enemy = 0) => [
     title: "Sereia",
     song: 'dead',
     songVolume: 0.2,
-    value: generateRange(4 + enemy, 10 + enemy),
+    value: generateRange(4 + enemy, 5 + enemy),
     type: "enemy",
     description: "Sereia inimigo",
     uri: "https://i.pinimg.com/originals/fe/5a/25/fe5a251e96710fda949e17f95fd96a83.png",
   },
     {
     title: "Gosma",
-    value: generateRange(3 + enemy, 6 + enemy),
+    value: generateRange(2 + enemy, 4 + enemy),
     song: 'dead',
     songVolume: 0.2,
     type: "enemy",
@@ -113,7 +113,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Esqueleto",
     song: 'enemy_skeleton',
     songVolume: 0.2,
-    value: generateRange(5 + enemy, 8 + enemy),
+    value: generateRange(5 + enemy, 7 + enemy),
     type: "enemy",
     description: "Esqueleto inimigo",
     uri: "https://wallpapers.com/images/hd/scary-monster-pictures-wxi8mvb6mdad3xu2.jpg",
@@ -122,7 +122,7 @@ const getEnemyCards = (enemy = 0) => [
     title: "Vampiro",
     song: 'enemy_skeleton',
     songVolume: 0.2,
-    value: generateRange(2 + enemy, 7 + enemy),
+    value: generateRange(2 + enemy, 6 + enemy),
     type: "enemy",
     description: "Vampiro inimigo",
     uri: "https://files.meiobit.com/wp-content/uploads/2020/04/20200424dracula-de-bram-stoker-2.jpg",
@@ -142,7 +142,7 @@ const getShieldCards = (shield = 0) => [
     },
     uri: "https://img.elo7.com.br/product/zoom/4DD8D58/escudo-medieval-em-mdf-40-cm-aniversario-de-principe.jpg",
     description: "Defesa absorve dano",
-    textCommand: "",
+    textCommand: "defesa",
   }
 ];
 
@@ -159,7 +159,7 @@ const getAttackCards = (attack = 0) => [
     },
     uri: "https://aventurasnahistoria.com.br/wp-content/uploads/espada_achado_bosnia.jpeg",
     description: "Ataque remove dano do inimigo",
-    textCommand: "",
+    textCommand: "Ataque",
   },
 ];
 
@@ -179,7 +179,7 @@ const getPotionCards = (potion = 0) => [
     uri: "https://i.etsystatic.com/31046540/r/il/02f3d4/4024103472/il_340x270.4024103472_nazj.jpg",
     description:
       "Poção é usada automaticamente ao ser colocada no slot, recuperando vida do herói. remove a carta quando finaliza o turno",
-    textCommand: "",
+    textCommand: "possãum",
     isUse: false //controle de uso: muda o valor pra true se a carta ja foi usada nesse turno
   },
 ];
@@ -200,7 +200,7 @@ const getGoldCards = (gold = 0) => [
     uri: "https://cdn.hswstatic.com/gif/Money-gold.jpg",
     description:
       "Ouro é usado automaticamente ao ser adicionado na bag ou slot, somando pontos de ouro ao herói., remove a carta quando finaliza o turno",
-    textCommand: "",
+    textCommand: "ouro",
     isUse: false //controle de uso: muda o valor pra true se a carta ja foi usada nesse turno
   },
 ];
@@ -213,6 +213,7 @@ const getSkillCards = (skill = 0) => {
       title: "Aumenta Ataque",
       value: [2 + skill],
       type: "skill",
+      textCommand: "habiliade aumenta ataque",
       effect: "attack", // o efeito é aplicado apenas em cartas type:double_attack
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em um ataque deve reduzir 1 do sequencial
       description: "Aumenta o ataque atual do herói.",
@@ -231,6 +232,7 @@ const getSkillCards = (skill = 0) => {
       value: [2 + skill],
       effect: "defense", // o efeito é aplicado apenas em cartas type:defense
       type: "skill",
+      textCommand: "habiliade aumenta defesa",
       sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se utilizada em uma defesa deve reduzir 1 do sequencial
       actions: {
         bag: ["pegar", "descartar"],
@@ -246,6 +248,7 @@ const getSkillCards = (skill = 0) => {
     {
       title: "Reviver",
       value: [reviveValue],
+      textCommand: "habiliade reviver",
       effect: "revive", // o efeito é aplicado apenas quando o heroi morrer, ele é revivido com base no value da carta, após a carta ser utilizada ela é destruida e libera o slot, o efeito dela deve existir até o sequencial for zerado
       type: "skill",
        sequencial: 1, // informa quantas vezes o heroi pode usar a carta durante o jogo, se o heroi conseguir mais de uma carta deve o sequencial ser acumulativo, se heroi morrer deve reduzir 1 do sequencial

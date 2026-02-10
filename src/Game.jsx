@@ -10,6 +10,7 @@ import SpeechListener from './components/SpeechListener/SpeechListener';
 const initItem =
 {
   title: 'Poção',
+  textCommand: "possãum",
   value: 2,
   type: 'potion',
   content: 'This is the second dungeon card.',
@@ -138,9 +139,65 @@ function Game({ deck, openModal, setIsDead }) {
 
     if (countCard <= 1 && deckState.length > 0) {
       playSound('frap_card', 0.5, false)
-      const newCards = deckState.slice(0, 3)
+      
+      // Pega 3 cartas inicialmente
+      let newCards = deckState.slice(0, 3)
+      let cardsToRemove = 3
+      
+      // Verifica se a carta que sobrou é enemy
+      const remainingCard = activeCards[0]
+      const isRemainingEnemy = remainingCard && remainingCard.type === 'enemy'
+      
+      // Regra 1: Se a carta que sobrou é enemy, verifica se todas as novas também são (evitar 4 enemies)
+      if (isRemainingEnemy && newCards.length === 3) {
+        const allNewAreEnemies = newCards.every(card => card.type === 'enemy')
+        
+        if (allNewAreEnemies) {
+          // Procura uma carta não-enemy em todo o deck restante
+          const nonEnemyIndex = deckState.findIndex(card => card.type !== 'enemy')
+          
+          if (nonEnemyIndex !== -1 && nonEnemyIndex > 0) {
+            // Se encontrou uma não-enemy, reorganiza as cartas
+            if (nonEnemyIndex <= 2) {
+              // Carta não-enemy está nas 3 primeiras, usa ela
+              newCards = deckState.slice(0, 3)
+              cardsToRemove = 3
+            } else {
+              // Carta não-enemy está mais adiante, substitui a última das 3
+              newCards = [...deckState.slice(0, 2), deckState[nonEnemyIndex]]
+              cardsToRemove = nonEnemyIndex + 1
+            }
+          } else if (nonEnemyIndex === -1) {
+            // Não há cartas não-enemy no deck, pega apenas 2 cartas para evitar 4 enemies
+            newCards = deckState.slice(0, 2)
+            cardsToRemove = 2
+          }
+        }
+      }
+      
+      // Regra 2: Garantir que sempre exista pelo menos 1 enemy na dungeon
+      const hasEnemyInRemaining = remainingCard && remainingCard.type === 'enemy'
+      const hasEnemyInNew = newCards.some(card => card.type === 'enemy')
+      
+      if (!hasEnemyInRemaining && !hasEnemyInNew) {
+        // Não há enemy na dungeon, procura um no deck
+        const enemyIndex = deckState.findIndex(card => card.type === 'enemy')
+        
+        if (enemyIndex !== -1) {
+          if (enemyIndex <= 2) {
+            // Enemy está nas 3 primeiras, só pega normalmente
+            newCards = deckState.slice(0, 3)
+            cardsToRemove = 3
+          } else {
+            // Enemy está mais adiante, substitui a última das 3
+            newCards = [...deckState.slice(0, 2), deckState[enemyIndex]]
+            cardsToRemove = enemyIndex + 1
+          }
+        }
+      }
+      
       setDungeonCards([...newCards, ...activeCards])
-      setDeckState(deckState.slice(3))
+      setDeckState(deckState.slice(cardsToRemove))
 
       // Novo turno: remove items consumidos do slot e da bag
       setDungeonHero(prevHero => ({
@@ -217,7 +274,6 @@ function Game({ deck, openModal, setIsDead }) {
   }, [dungeonHero.hero.value])
 
   useEffect(() => {
-    if (!openModal) {
       const [actiont, ...text] = command.split(" ")
       const restComand = text.join(" ")
       let heroChanged = false
@@ -303,6 +359,10 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["pega", "vende"])) {
+        if(dungeonHero.bag.length <1) {
+          readSimpleCommand('A bolsa está vazia, não há o que pegar ou vender')
+          return
+        }
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -310,6 +370,31 @@ function Game({ deck, openModal, setIsDead }) {
           slot: [...dungeonHero.slot],
           skill: [...dungeonHero.skill],
           hero: { ...dungeonHero.hero }
+        }
+
+        // Se comando é "pega" sem especificar carta, pega a primeira da bag automaticamente
+        if (commandMatch(actiont, ["pega"]) && nextHero.slot.length < 2) {
+          const firstCard = nextHero.bag[0]
+          const cardWithUseFlag = { ...firstCard, isUse: firstCard.isUse || false }
+
+          // Auto-consumo para poção no slot
+          if (firstCard.type === 'potion' && firstCard.auto?.slot && !firstCard.isUse) {
+            nextHero.hero.value = Math.min(nextHero.hero.value + firstCard.value, nextHero.hero.maxValue)
+            cardWithUseFlag.isUse = true
+          }
+
+          // Auto-consumo para gold no slot
+          if (firstCard.type === 'gold' && firstCard.auto?.slot && !firstCard.isUse) {
+            nextHero.gold = nextHero.gold + firstCard.value
+            cardWithUseFlag.isUse = true
+          }
+
+          nextHero.slot.push(cardWithUseFlag)
+          nextHero.bag.shift() // Remove a primeira carta da bag
+          heroChanged = true
+          playSound('equip')
+          setDungeonHero(nextHero)
+          return
         }
 
         // Processa cards da bag do herói
@@ -326,33 +411,6 @@ function Game({ deck, openModal, setIsDead }) {
               nextHero.gold = nextHero.gold + card.value
               heroChanged = true
               setSelectHeroID(null)
-              return false // Remove da bag
-            }
-            if (commandMatch(actiont, ["pega"]) && nextHero.slot.length < 2) {
-              const cardWithUseFlag = { ...card, isUse: card.isUse || false }
-
-              // Auto-consumo para poção no slot
-              if (card.type === 'potion' && card.auto?.slot && !card.isUse) {
-                nextHero.hero.value = Math.min(nextHero.hero.value + card.value, nextHero.hero.maxValue)
-                cardWithUseFlag.isUse = true
-              }
-
-              // Auto-consumo para gold no slot
-              if (card.type === 'gold' && card.auto?.slot && !card.isUse) {
-                nextHero.gold = nextHero.gold + card.value
-                cardWithUseFlag.isUse = true
-              }
-
-              nextHero.slot.push(cardWithUseFlag)
-              heroChanged = true
-              setSelectHeroID(null)
-              playSound('equip')
-
-              // Se o card não possui auto, seleciona ele automaticamente
-              // if (!card.auto) {
-              //   setSelectHeroID(card.id)
-              // }
-
               return false // Remove da bag
             }
           }
@@ -729,7 +787,7 @@ function Game({ deck, openModal, setIsDead }) {
         }
       }
 
-      if (commandMatch(actiont, ["comand", 'command'])){
+      if (commandMatch(actiont, ["ajuda"])){
         readSimpleCommand(`
           você pode usar os seguintes comandos: 
           comprar: adiciona na mão, 
@@ -742,8 +800,48 @@ function Game({ deck, openModal, setIsDead }) {
           atacar: usar a carta de ataque pra atacar,
           defesa: usa carta de defesa pra defender do inimigo`)
       }
+      
+      if(commandMatch(actiont, ["mesa", "meza"])){
+        let infoCard =  ''
+        dungeonCards.forEach((card) => {
+          infoCard = infoCard+ `${normalizeText(card.title)} ${card.value}. `
+          return
+        })
+        readSimpleCommand(`Mesa: ${infoCard}`)
+      }
+
+      if(commandMatch(actiont, ["heroi", "eroi"])){
+        let slotInfo = ''
+
+          if(dungeonHero.slot.length){
+            if(dungeonHero.slot.length === 1) {
+              slotInfo = `${normalizeText(dungeonHero.slot[0].textCommand)} ${dungeonHero.slot[0].value}`
+              slotInfo = slotInfo + '. Mão direita vazia'
+            } else {
+              slotInfo = `${normalizeText(dungeonHero.slot[0].textCommand)} ${dungeonHero.slot[0].value}`
+              slotInfo = slotInfo + `. ${normalizeText(dungeonHero.slot[1].textCommand)} ${dungeonHero.slot[1].value}.`
+            }
+          } else {
+            slotInfo = 'Mãos vazias.'
+          }
+
+        let bagInfo = dungeonHero.bag.length > 0 ? `${normalizeText(dungeonHero.bag[0].textCommand)} ${dungeonHero.bag[0].value}` : 'Bolsa vazia.'
+
+        let heroInfo = `${normalizeText(dungeonHero.hero.title)} ${dungeonHero.hero.value}/${dungeonHero.hero.maxValue} de vida. `
+        let skillInfo = ''
+
+        if(dungeonHero.skill.length){
+            dungeonHero.skill.forEach((skill) => {
+              skillInfo = skillInfo + `${normalizeText(skill.textCommand)} ${skill.value}. `
+            })
+          }
+        
+        readSimpleCommand(`${slotInfo} ${heroInfo} ${skillInfo} ${bagInfo}`)
+      }
       setCommand("") // Limpa o comando após executar
-    }
+
+      
+
   }, [command, openModal, dungeonCards, dungeonHero, selectCardID, setCommand])
 
   const handlerCardClick = (text) => {
