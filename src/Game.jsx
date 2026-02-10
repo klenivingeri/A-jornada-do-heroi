@@ -359,10 +359,8 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["pega", "vende"])) {
-        if(dungeonHero.bag.length <1) {
-          readSimpleCommand('A bolsa está vazia, não há o que pegar ou vender')
-          return
-        }
+        console.log('Comando pega/vende - Bag length:', dungeonHero.bag.length, 'Bag:', dungeonHero.bag)
+        
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -372,8 +370,23 @@ function Game({ deck, openModal, setIsDead }) {
           hero: { ...dungeonHero.hero }
         }
 
-        // Se comando é "pega" sem especificar carta, pega a primeira da bag automaticamente
-        if (commandMatch(actiont, ["pega"]) && nextHero.slot.length < 2) {
+        // Se comando é "pega" sem especificar carta
+        if (commandMatch(actiont, ["pega"])) {
+          // Verifica se a bag está vazia
+          if(nextHero.bag.length < 1) {
+            readSimpleCommand('A bolsa está vazia, não há o que pegar')
+            setCommand("")
+            return
+          }
+          
+          // Verifica se o slot está cheio
+          if (nextHero.slot.length >= 2) {
+            readSimpleCommand('As mãos estão cheias, não é possível pegar mais itens')
+            setCommand("")
+            return
+          }
+
+          // Pega a primeira carta da bag automaticamente
           const firstCard = nextHero.bag[0]
           const cardWithUseFlag = { ...firstCard, isUse: firstCard.isUse || false }
 
@@ -394,7 +407,17 @@ function Game({ deck, openModal, setIsDead }) {
           heroChanged = true
           playSound('equip')
           setDungeonHero(nextHero)
+          setCommand("")
           return
+        }
+
+        // Se comando é "vende", verifica se há item na bag
+        if (commandMatch(actiont, ["vende"])) {
+          if(nextHero.bag.length < 1) {
+            readSimpleCommand('A bolsa está vazia, não há o que vender')
+            setCommand("")
+            return
+          }
         }
 
         // Processa cards da bag do herói
@@ -485,6 +508,8 @@ function Game({ deck, openModal, setIsDead }) {
                   playSound('anvil-hit', 0.5)
                 }
                 break
+              } else {
+                readSimpleCommand('você não possui items para aplicar a habilidade')
               }
             }
 
@@ -527,6 +552,16 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["avanca"])) {
+        // Verifica se o card selecionado é um inimigo
+        if (selectCardID) {
+          const selectedCard = dungeonCards.find(card => card.id === selectCardID)
+          if (selectedCard && selectedCard.type !== 'enemy') {
+            readSimpleCommand('Carta selecionada não é um inimigo')
+            setCommand("")
+            return
+          }
+        }
+
         let heroChanged = false
         const nextHero = {
           ...dungeonHero,
@@ -584,6 +619,16 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["ataque", "atacar"])) {
+        // Verifica se o card selecionado é um inimigo
+        if (selectCardID) {
+          const selectedCard = dungeonCards.find(card => card.id === selectCardID)
+          if (selectedCard && selectedCard.type !== 'enemy') {
+            readSimpleCommand('Carta selecionada não é um inimigo')
+            setCommand("")
+            return
+          }
+        }
+
         let heroChanged = false
         let dungeonChanged = false
         const nextHero = {
@@ -670,6 +715,16 @@ function Game({ deck, openModal, setIsDead }) {
       }
 
       if (commandMatch(actiont, ["defesa", "defender", "defende", "escudo"])) {
+        // Verifica se o card selecionado é um inimigo
+        if (selectCardID) {
+          const selectedCard = dungeonCards.find(card => card.id === selectCardID)
+          if (selectedCard && selectedCard.type !== 'enemy') {
+            readSimpleCommand('Carta selecionada não é um inimigo')
+            setCommand("")
+            return
+          }
+        }
+
         let heroChanged = false
         let dungeonChanged = false
         const nextHero = {

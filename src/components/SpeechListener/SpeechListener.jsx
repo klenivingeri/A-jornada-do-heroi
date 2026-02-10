@@ -6,11 +6,21 @@ export default function SpeechListener({ setCommand }) {
   const isActiveRef = useRef(false);
   const restartTimeoutRef = useRef(null);
   const isRunningRef = useRef(false);
+  const stopDelayTimeoutRef = useRef(null); // Timeout para os 2 segundos de delay
   const [isListening, setIsListening] = useState(false);
   const [lastTranscript, setLastTranscript] = useState("");
 
   // Função para ativar microfone
   const startListening = () => {
+    // Cancela qualquer timeout de parada pendente
+    if (stopDelayTimeoutRef.current) {
+      clearTimeout(stopDelayTimeoutRef.current);
+      stopDelayTimeoutRef.current = null;
+
+      isActiveRef.current = true;
+      return; // Já está rodando, só cancela a parada
+    }
+    
     if (!recognitionRef.current || isActiveRef.current) return;
 
     isActiveRef.current = true;
@@ -25,30 +35,39 @@ export default function SpeechListener({ setCommand }) {
   // Função para desativar microfone
   const stopListening = () => {
     if (!recognitionRef.current) return;
-
-    console.log("🛑 Solicitando parada do microfone...");
     
-    // Marca como inativo PRIMEIRO para evitar reiniciar
+    // Marca como inativo para não permitir novos starts
     isActiveRef.current = false;
     
-    // Cancela qualquer timeout pendente IMEDIATAMENTE
-    if (restartTimeoutRef.current) {
-      clearTimeout(restartTimeoutRef.current);
-      restartTimeoutRef.current = null;
-      console.log("❌ Timeout cancelado");
+    // Cancela qualquer timeout pendente de parada anterior
+    if (stopDelayTimeoutRef.current) {
+      clearTimeout(stopDelayTimeoutRef.current);
+      stopDelayTimeoutRef.current = null;
     }
     
-    try {
-      // Usa stop() para permitir processar resultados finais
-      if (isRunningRef.current) {
-        recognitionRef.current.stop();
-        console.log("🔇 Microfone DESLIGADO (stop chamado)");
+    // Aguarda 2 segundos antes de realmente parar
+    stopDelayTimeoutRef.current = setTimeout(() => {
+      
+      // Cancela qualquer timeout de restart
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
       }
-    } catch (err) {
-      console.error("Erro ao desligar:", err);
-      isRunningRef.current = false;
-      setIsListening(false);
-    }
+      
+      try {
+        // Usa stop() para permitir processar resultados finais
+        if (isRunningRef.current) {
+          recognitionRef.current.stop();
+
+        }
+      } catch (err) {
+        console.error("Erro ao desligar:", err);
+        isRunningRef.current = false;
+        setIsListening(false);
+      }
+      
+      stopDelayTimeoutRef.current = null;
+    }, 300); // 2 segundos de delay
   };
 
   // Listener global para barra de espaço
@@ -105,14 +124,11 @@ export default function SpeechListener({ setCommand }) {
     };
 
     recognition.onend = () => {
-      console.log("📴 Recognition.onend - isActive:", isActiveRef.current, "isRunning:", isRunningRef.current);
-      
       isRunningRef.current = false;
       setIsListening(false);
       
       // VERIFICAÇÃO IMEDIATA: Só reinicia se botão ainda pressionado
       if (!isActiveRef.current) {
-        console.log("✅ Parada confirmada - botão solto");
         return;
       }
 
@@ -125,16 +141,13 @@ export default function SpeechListener({ setCommand }) {
       restartTimeoutRef.current = setTimeout(() => {
         // VERIFICAÇÃO DUPLA antes de reiniciar
         if (!isActiveRef.current) {
-          console.log("⛔ Cancelando - foi solto durante timeout");
           return;
         }
         
         if (isRunningRef.current) {
-          console.log("⚠️ Já está rodando, não reinicia");
           return;
         }
         
-        console.log("🔄 Reiniciando...");
         try {
           recognition.start();
         } catch (err) {
@@ -150,18 +163,15 @@ export default function SpeechListener({ setCommand }) {
       
       // Ignora erros comuns que são esperados
       if (error?.error === "no-speech") {
-        console.log("🔇 Silencio detectado, aguardando...");
         return; // Não para o listener
       }
       
       if (error?.error === "aborted") {
-        console.log("🛑 Gravacao abortada (esperado ao parar)");
         isRunningRef.current = false;
         setIsListening(false);
         return;
       }
 
-      // Erros críticos param tudo
       console.error("❌ Erro CRÍTICO:", error);
       isActiveRef.current = false;
       isRunningRef.current = false;
@@ -180,6 +190,11 @@ export default function SpeechListener({ setCommand }) {
         restartTimeoutRef.current = null;
       }
       
+      if (stopDelayTimeoutRef.current) {
+        clearTimeout(stopDelayTimeoutRef.current);
+        stopDelayTimeoutRef.current = null;
+      }
+      
       try {
         if (recognitionRef.current && isRunningRef.current) {
           recognitionRef.current.stop();
@@ -194,13 +209,11 @@ export default function SpeechListener({ setCommand }) {
 
   const handleTouchStart = (e) => {
     e.preventDefault();
-    console.log("👆 Touch START");
     startListening();
   };
 
   const handleTouchEnd = (e) => {
     e.preventDefault();
-    console.log("👆 Touch END");
     stopListening();
   };
 
