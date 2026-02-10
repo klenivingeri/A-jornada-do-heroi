@@ -8,6 +8,7 @@ import { commandMatch } from './util/commandMatch.js';
 import BackgroundMusic from './components/BackgroundMusic/BackgroundMusic.jsx';
 import { readSimpleCommand } from './util/speechReader';
 import Rules from './components/Rules/Rules.jsx';
+import Tutorial from './Tutorial.jsx';
 
 const statusGame = {
   enemy: 1,
@@ -77,7 +78,7 @@ function App() {
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [page, setPage] = useState('game')
+  const [page, setPage] = useState('tutorial')
   const [isDead, setIsDead] = useState(false)
   const [isWinner, setIsWinner] = useState(false)
   
@@ -98,6 +99,9 @@ function App() {
       }
       if (commandMatch(command, ["regra"])) {
         setPage('regra')
+      }
+      if (commandMatch(command, ["tutorial"])) {
+        setPage('tutorial')
       }
       setCommand("")
     }
@@ -147,6 +151,7 @@ function App() {
             <nav aria-label="Comandos disponíveis">
               <p>Diga: <strong aria-label="diga iniciar">"Iniciar"</strong> para começar o jogo</p>
               <p>Diga: <strong aria-label="diga regras">"Regras"</strong> para entender como jogar</p>
+              <p>Diga: <strong aria-label="diga tutorial">"Tutorial"</strong> para aprender a jogar passo a passo</p>
               <p>Diga: <strong aria-label="diga abrir menu">"Abrir menu"</strong> para acessar as configurações</p>
             </nav>
           </header>
@@ -195,6 +200,13 @@ function App() {
           setIsDead={setIsDead}
           setIsWinner={setIsWinner}
         />)}
+
+        {page === 'tutorial' && (
+        <Tutorial
+          deck={deck}
+          setIsDead={setIsDead}
+          setIsWinner={setIsWinner}
+        />)}
       {page === 'regra' && (
         <Rules setCommand={setCommand} />
       )}
@@ -210,7 +222,7 @@ function App() {
         <SpeechListener setCommand={setCommand} />
         </Modal>
       )}
-      <BackgroundMusic volume={config.find(item => item.type === "ambient")?.value || 10} />
+      {/* <BackgroundMusic volume={config.find(item => item.type === "ambient")?.value || 10} /> */}
     </div>
   )
 }

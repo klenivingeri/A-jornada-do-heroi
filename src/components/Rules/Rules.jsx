@@ -22,7 +22,6 @@ function Rules({ setCommand }) {
       </h1>
       <p style={{ marginBottom: '30px' }}>Nesta tela o botão de executar comandos fica no 4º bloco, ele está no inferior da tela. Dito isso, vamos às regras!</p>
 
-      
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '15px', color: '#ffd700' }}>
           🎯 Objetivo
@@ -111,6 +110,22 @@ function Rules({ setCommand }) {
 
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '15px', color: '#ffd700' }}>
+          💡 Dicas Estratégicas
+        </h2>
+        <ul style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
+          <li>✅ Use poções quando sua vida estiver baixa (abaixo de 6, você ouvirá batimentos cardíacos)</li>
+          <li>✅ Guarde cartas de defesa e ataque na bag para momentos críticos</li>
+          <li>✅ Habilidades "Aumenta Ataque" e "Aumenta Defesa" fortalecem suas cartas</li>
+          <li>✅ A habilidade "Reviver" é sua segunda chance - use com sabedoria</li>
+          <li>✅ Cartas de ouro e poção são consumidas automaticamente</li>
+          <li>✅ Você ganha ouro ao derrotar inimigos (igual ao valor de dano deles)</li>
+        </ul>
+      </section>
+
+      <p>Se voce Já fez o tutorial, pode dar o comando "retornar" ou "voltar", os comando da aqui pra baixo explicam os comandos parceiais, que foram oque voce aprendeu no tutorial, e os comandos completos, que são a forma de jogar sem precisar tocar na tela.</p>
+      
+      <section style={{ marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '24px', marginBottom: '15px', color: '#ffd700' }}>
           🎮 Mecânicas do Jogo
         </h2>
 
@@ -187,20 +202,6 @@ function Rules({ setCommand }) {
             <li><strong>"retornar"</strong> - Volta à tela inicial</li>
           </ul>
         </div>
-      </section>
-
-      <section style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '15px', color: '#ffd700' }}>
-          💡 Dicas Estratégicas
-        </h2>
-        <ul style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
-          <li>✅ Use poções quando sua vida estiver baixa (abaixo de 6, você ouvirá batimentos cardíacos)</li>
-          <li>✅ Guarde cartas de defesa e ataque na bag para momentos críticos</li>
-          <li>✅ Habilidades "Aumenta Ataque" e "Aumenta Defesa" fortalecem suas cartas</li>
-          <li>✅ A habilidade "Reviver" é sua segunda chance - use com sabedoria</li>
-          <li>✅ Cartas de ouro e poção são consumidas automaticamente</li>
-          <li>✅ Você ganha ouro ao derrotar inimigos (igual ao valor de dano deles)</li>
-        </ul>
       </section>
 
       <div style={{ 

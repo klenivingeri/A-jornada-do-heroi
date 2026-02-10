@@ -10,6 +10,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
       width: '100%'
     }}>
       <Card
+        key={dungeonHero.slot[0]?.id || "hand-right-empty"}
         selectID={setSelectHeroID}
         id={dungeonHero.slot[0]?.id}
         title={dungeonHero.slot[0]?.title ? dungeonHero.slot[0]?.title : "Mão direita vazia"}
@@ -20,6 +21,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         isUse={dungeonHero.slot[0]?.isUse}
       />
       <Card
+        key={dungeonHero.slot[1]?.id || "hand-left-empty"}
         selectID={setSelectHeroID}
         id={dungeonHero.slot[1]?.id}
         title={dungeonHero.slot[1]?.title ? dungeonHero.slot[1]?.title : "Mão esquerda vazia"}
@@ -30,6 +32,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         isUse={dungeonHero.slot[1]?.isUse}
       />
       <Card
+        key={dungeonHero.hero?.id}
         selectID={setSelectHeroID}
         id={dungeonHero.hero?.id}
         title={dungeonHero.hero?.title}
@@ -38,6 +41,7 @@ export const HeroContainer = ({ dungeonHero, setSelectHeroID }) => {
         description={dungeonHero.hero?.description}
       />
       <Card
+        key={dungeonHero.bag[0]?.id || "bag-empty"}
         selectID={setSelectHeroID}
         id={dungeonHero.bag[0]?.id}
         title={dungeonHero.bag[0]?.title ? dungeonHero.bag[0]?.title : "Bolsa vazia"}

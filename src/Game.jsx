@@ -301,6 +301,21 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
           hero: { ...dungeonHero.hero }
         }
 
+        // Validações antes de processar
+        if (commandMatch(actiont, ["compra"]) && nextHero.slot.length >= 2) {
+          readSimpleCommand('As mãos estão cheias, não é possível comprar mais itens')
+          setSelectCardID(null)
+          setCommand("")
+          return
+        }
+
+        if (commandMatch(actiont, ["guarda"]) && nextHero.bag.length >= 1) {
+          readSimpleCommand('A bolsa está cheia, não é possível guardar mais itens')
+          setSelectCardID(null)
+          setCommand("")
+          return
+        }
+
         const restDungeonCards = dungeonCards.map((card) => {
           const infoCard = `${normalizeText(card.title)} ${card.value}`
 
@@ -338,6 +353,7 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
               if (card.type === 'potion' && card.auto?.slot) {
                 nextHero.hero.value = Math.min(nextHero.hero.value + card.value, nextHero.hero.maxValue)
                 cardWithUseFlag.isUse = true
+                playSound('potion')
               }
 
               // Auto-consumo para gold no slot
@@ -406,6 +422,7 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
           if (firstCard.type === 'potion' && firstCard.auto?.slot && !firstCard.isUse) {
             nextHero.hero.value = Math.min(nextHero.hero.value + firstCard.value, nextHero.hero.maxValue)
             cardWithUseFlag.isUse = true
+            playSound('potion')
           }
 
           // Auto-consumo para gold no slot
@@ -476,10 +493,8 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
           return
         }
 
-        // Se selectCardID está definido e há apenas uma carta no slot, usa automaticamente
-        // Ou se há apenas uma carta no slot e ela é do tipo skill, usa automaticamente
-        const shouldAutoUse = (selectCardID && nextHero.slot.length === 1) ||
-          (nextHero.slot.length === 1 && nextHero.slot[0].type === 'skill')
+        // Se há apenas uma carta de skill no slot, usa automaticamente
+        const shouldAutoUse = skillCardsInSlot.length === 1 && !selectHeroID && !restComand
 
         // Primeiro, encontra a carta que será usada
         let cardToUse = null
@@ -518,7 +533,7 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
 
                 // Toca som se existir
                 if (cardToUse.song) {
-                  playSound('anvil-hit', 0.5)
+                  playSound('anvil-hit', 0.2)
                 }
                 break
               }
@@ -577,6 +592,10 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
             setCommand("")
             return
           }
+        } else if (!restComand) {
+          readSimpleCommand('Nenhuma carta foi selecionada')
+          setCommand("")
+          return
         }
 
         let heroChanged = false
@@ -645,6 +664,10 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
             setCommand("")
             return
           }
+        } else if (!restComand) {
+          readSimpleCommand('Nenhuma carta foi selecionada')
+          setCommand("")
+          return
         }
 
         let heroChanged = false
@@ -750,6 +773,10 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
             setCommand("")
             return
           }
+        } else if (!restComand) {
+          readSimpleCommand('Nenhuma carta foi selecionada')
+          setCommand("")
+          return
         }
 
         let heroChanged = false
