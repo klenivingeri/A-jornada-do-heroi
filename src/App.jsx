@@ -78,7 +78,7 @@ function App() {
   const [command, setCommand] = useState("")
   const [config, setConfig] = useState(() => menuConfiguracoes)
   const [openModal, setOpenModal] = useState(false)
-  const [page, setPage] = useState('tutorial')
+  const [page, setPage] = useState('init')
   const [isDead, setIsDead] = useState(false)
   const [isWinner, setIsWinner] = useState(false)
   
@@ -90,6 +90,7 @@ function App() {
       }
       if (commandMatch(command, ["iniciar"])) {
         setPage('game')
+        
       }
       
       if (commandMatch(command, ["retorn", "volta", "fechar"])) {

@@ -1,11 +1,12 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, use } from 'react'
 import { HeroContainer } from './components/HeroContainer/HeroContainer';
 import { Board } from './components/Board/Board';
 import { commandMatch } from './util/commandMatch';
 import { normalizeText } from './util/normalizeText';
 import { readSimpleCommand } from './util/speechReader';
 import SpeechListener from './components/SpeechListener/SpeechListener';
+import { toggleFullScreen } from './util/fullScreen';
 
 const initItem =
 {
@@ -142,6 +143,10 @@ function Game({ deck, openModal, setIsDead, setIsWinner }) {
       }
     }
   }
+
+  useEffect(() => {
+    toggleFullScreen()
+  },[])
 
   useEffect(() => {
     const activeCards = dungeonCards.filter((card) => card.title)
